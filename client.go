@@ -3,7 +3,6 @@ package go_android_firebase
 import (
 	"fmt"
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
-	"github.com/BRUHItsABunny/go-android-firebase/api"
 	go_android_utils "github.com/BRUHItsABunny/go-android-utils"
 )
 

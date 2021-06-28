@@ -1,4 +1,4 @@
-package go_android_firebase
+package constants
 
 import (
 	"fmt"

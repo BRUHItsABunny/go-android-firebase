@@ -4,8 +4,8 @@ import (
 	"fmt"
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
 	go_android_utils "github.com/BRUHItsABunny/go-android-utils"
-	"go-android-firebase/api"
-	. "go-android-firebase/constants"
+	"github.com/BRUHItsABunny/go-android-firebase/api"
+	. "github.com/BRUHItsABunny/go-android-firebase/constants"
 )
 
 type FireBaseClient struct {

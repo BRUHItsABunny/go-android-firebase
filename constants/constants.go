@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	Protocol = "https"
+	Protocol = "https://"
 	Host     = "firebaseinstallations.googleapis.com"
 
 	EndpointProjects = "/v1/projects/"

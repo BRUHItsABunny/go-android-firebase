@@ -1,4 +1,4 @@
-module github.com/BRUHItsABunny/go-android-firebase/go-android-firebase
+module github.com/BRUHItsABunny/go-android-firebase
 
 go 1.15
 

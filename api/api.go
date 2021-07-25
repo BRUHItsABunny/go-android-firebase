@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	gokhttp "github.com/BRUHItsABunny/gOkHttp"
 	. "github.com/BRUHItsABunny/go-android-firebase/constants"
 	"net/http"
 )
@@ -33,24 +34,7 @@ type NotifyInstallationResponse struct {
 	SDKVersion  string `json:"sdkVersion"`
 }
 
-type HeaderFiller interface {
-	Fill(*http.Request) *http.Request
-}
-
-type DefaultHeadersFiller struct {
-	Headers map[string]string
-}
-
-func (filler *DefaultHeadersFiller) Fill(req *http.Request) *http.Request {
-
-	for key, val := range filler.Headers {
-		req.Header[key] = []string{val}
-	}
-
-	return req
-}
-
-var DefaultHeaders = DefaultHeadersFiller{
+var DefaultHeaders = &gokhttp.DefaultHeadersFiller{
 	Headers: map[string]string{
 		HeaderKeyContentType:  HeaderValueMIMEJSON,
 		HeaderKeyAccept:       HeaderValueMIMEJSON,
@@ -58,7 +42,7 @@ var DefaultHeaders = DefaultHeadersFiller{
 	},
 }
 
-func NotifyInstallationRequest(data *NotifyInstallationRequestBody, filler HeaderFiller, ProjectID, AndroidPackage, AndroidCertificate, GoogAPIKey, FireBaseClient, FireBaseLogType, UserAgent string) *http.Request {
+func NotifyInstallationRequest(data *NotifyInstallationRequestBody, filler gokhttp.HeaderFiller, ProjectID, AndroidPackage, AndroidCertificate, GoogAPIKey, FireBaseClient, FireBaseLogType, UserAgent string) *http.Request {
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", Protocol+Host+EndpointProjects+ProjectID+SubEndpointInstallations, bytes.NewBuffer(body))
 

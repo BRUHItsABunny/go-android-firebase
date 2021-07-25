@@ -4,7 +4,7 @@ import (
 	"fmt"
 	go_android_firebase "github.com/BRUHItsABunny/go-android-firebase"
 	go_android_firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
-	go_android_utils "github.com/BRUHItsABunny/go-android-utils"
+	go_android_db "github.com/BRUHItsABunny/go-android-utils/database"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -17,7 +17,7 @@ func main() {
 		googAPIKey = "AIzaSyApp-r0nt0UCP8upiqL1_OXXXVi880dTOI"
 	)
 
-	client := go_android_firebase.NewFireBaseClient(nil, &go_android_utils.DefaultDeviceOnePlus7T, andCert, andPackage, project, googAPIKey)
+	client := go_android_firebase.NewFireBaseClient(nil, go_android_db.GetRandomDevice(), andCert, andPackage, project, googAPIKey)
 
 	req := go_android_firebase_api.NotifyInstallationRequestBody{
 		FID:         "ftyb0dRpS6io72kgwaNcW7",

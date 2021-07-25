@@ -36,7 +36,7 @@ func (c *FireBaseClient) NotifyInstallation(data *api.NotifyInstallationRequestB
 	userAgent := HeaderValueUserAgentPrefix + c.Device.GetUserAgent()
 	fireBaseClient := c.Device.FormatUserAgent(HeaderValueFireBaseClient)
 
-	req := api.NotifyInstallationRequest(data, &api.DefaultHeaders, c.ProjectID, c.AndroidPackage, c.AndroidCertificate, c.APIKey, fireBaseClient, "3", userAgent)
+	req := api.NotifyInstallationRequest(data, api.DefaultHeaders, c.ProjectID, c.AndroidPackage, c.AndroidCertificate, c.APIKey, fireBaseClient, "3", userAgent)
 	resp, err := c.Client.Do(req)
 	if err == nil {
 		err = resp.Object(result)

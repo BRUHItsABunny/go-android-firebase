@@ -2,7 +2,4 @@ module github.com/BRUHItsABunny/go-android-firebase
 
 go 1.15
 
-require (
-	github.com/BRUHItsABunny/gOkHttp v0.0.6
-	github.com/BRUHItsABunny/go-android-utils v0.0.13
-)
+require github.com/BRUHItsABunny/go-android-utils v0.0.15

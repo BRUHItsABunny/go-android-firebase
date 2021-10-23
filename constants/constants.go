@@ -6,14 +6,17 @@ import (
 )
 
 const (
-	Protocol = "https://"
-	Host     = "firebaseinstallations.googleapis.com"
+	protocol = "https://"
+	host     = protocol + "firebaseinstallations.googleapis.com"
 
-	EndpointProjects = "/v1/projects/"
+	endpointProjects = host + "/v1/projects/%s"
 
-	SubEndpointInstallations = "/installations"
+	EndpointInstallations = endpointProjects + "/installations"
+	EndpointVerifyPassword     = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword"
+	EndpointRefreshSecureToken = "https://securetoken.googleapis.com/v1/token"
 
 	HeaderKeyFireBaseClient  = "x-firebase-client"
+	HeaderKeyClientVersion  = "x-client-version"
 	HeaderKeyFireBaseLogType = "x-firebase-log-type"
 	HeaderKeyAndroidCert     = "X-Android-Cert"
 	HeaderKeyAndroidPackage  = "X-Android-Package"
@@ -25,6 +28,7 @@ const (
 	HeaderKeyCacheControl = "Cache-Control"
 
 	HeaderValueMIMEJSON = "application/json"
+	HeaderValueClientVersion = "Android/Fallback/X20000001/FirebaseCore-Android"
 )
 
 var (
@@ -35,5 +39,4 @@ var (
 		go_android_utils.DeviceFormatKeyManufacturer,
 	)
 
-	HeaderValueUserAgentPrefix = fmt.Sprintf("Dalvik/2.1.0 ")
 )

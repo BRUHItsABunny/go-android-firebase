@@ -2,57 +2,66 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	gokhttp "github.com/BRUHItsABunny/gOkHttp"
+	"fmt"
 	. "github.com/BRUHItsABunny/go-android-firebase/constants"
 	"net/http"
+	"net/url"
 )
 
-type NotifyInstallationRequestBody struct {
-	FID         string `json:"fid"`
-	AppID       string `json:"appId"`
-	AuthVersion string `json:"authVersion"`
-	SDKVersion  string `json:"sdkVersion"`
+func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, data *NotifyInstallationRequestBody) (*http.Request, error) {
+	var (
+		body []byte
+		req *http.Request
+		err error
+	)
+
+	body, err = json.Marshal(data)
+	if err == nil {
+		req, err = http.NewRequestWithContext(ctx, "POST", fmt.Sprintf(EndpointInstallations, device.ProjectID), bytes.NewBuffer(body))
+		if err == nil {
+			req.Header = DefaultHeadersFirebase(device, true, true, false)
+		}
+	}
+
+	return req, err
 }
 
-type FireBaseInstallationResponse struct {
-	Name         string            `json:"name"`
-	FID          string            `json:"fid"`
-	RefreshToken string            `json:"refreshToken"`
-	AuthToken    FireBaseAuthToken `json:"authToken"`
+func VerifyPasswordRequest(ctx context.Context, device *FirebaseDevice, data *VerifyPasswordRequestBody) (*http.Request, error) {
+	var (
+		body []byte
+		req *http.Request
+		err error
+	)
+
+	body, err = json.Marshal(data)
+	if err == nil {
+		req, err = http.NewRequestWithContext(ctx, "POST", EndpointVerifyPassword, bytes.NewBuffer(body))
+		if err == nil {
+			req.URL.RawQuery = url.Values{"key": {device.GoogleAPIKey}}.Encode()
+			req.Header = DefaultHeadersFirebase(device, false, false, true)
+		}
+	}
+
+	return req, err
 }
 
-type FireBaseAuthToken struct {
-	Token      string `json:"token"`
-	Expiration string `json:"expiresin"`
-}
+func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, data *RefreshSecureTokenRequestBody) (*http.Request, error) {
+	var (
+		body []byte
+		req *http.Request
+		err error
+	)
 
-type NotifyInstallationResponse struct {
-	FID         string `json:"fid"`
-	AppID       string `json:"appId"`
-	AuthVersion string `json:"authVersion"`
-	SDKVersion  string `json:"sdkVersion"`
-}
+	body, err = json.Marshal(data)
+	if err == nil {
+		req, err = http.NewRequestWithContext(ctx, "POST", EndpointRefreshSecureToken, bytes.NewBuffer(body))
+		if err == nil {
+			req.URL.RawQuery = url.Values{"key": {device.GoogleAPIKey}}.Encode()
+			req.Header = DefaultHeadersFirebase(device, false, false, true)
+		}
+	}
 
-var DefaultHeaders = &gokhttp.DefaultHeadersFiller{
-	Headers: map[string]string{
-		HeaderKeyContentType:  HeaderValueMIMEJSON,
-		HeaderKeyAccept:       HeaderValueMIMEJSON,
-		HeaderKeyCacheControl: "no-cache",
-	},
-}
-
-func NotifyInstallationRequest(data *NotifyInstallationRequestBody, filler gokhttp.HeaderFiller, ProjectID, AndroidPackage, AndroidCertificate, GoogAPIKey, FireBaseClient, FireBaseLogType, UserAgent string) *http.Request {
-	body, _ := json.Marshal(data)
-	req, _ := http.NewRequest("POST", Protocol+Host+EndpointProjects+ProjectID+SubEndpointInstallations, bytes.NewBuffer(body))
-
-	req.Header[HeaderKeyAndroidCert] = []string{AndroidCertificate}
-	req.Header[HeaderKeyAndroidPackage] = []string{AndroidPackage}
-	req.Header[HeaderKeyFireBaseClient] = []string{FireBaseClient}
-	req.Header[HeaderKeyGoogAPIKey] = []string{GoogAPIKey}
-	req.Header[HeaderKeyFireBaseLogType] = []string{FireBaseLogType}
-	req.Header[HeaderKeyUserAgent] = []string{UserAgent}
-
-	req = filler.Fill(req)
-	return req
+	return req, err
 }

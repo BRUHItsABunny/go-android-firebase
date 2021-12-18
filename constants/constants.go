@@ -11,12 +11,13 @@ const (
 
 	endpointProjects = host + "/v1/projects/%s"
 
-	EndpointInstallations = endpointProjects + "/installations"
+	EndpointInstallations      = endpointProjects + "/installations"
 	EndpointVerifyPassword     = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword"
 	EndpointRefreshSecureToken = "https://securetoken.googleapis.com/v1/token"
+	EndpointAuth               = "https://android.googleapis.com/auth"
 
 	HeaderKeyFireBaseClient  = "x-firebase-client"
-	HeaderKeyClientVersion  = "x-client-version"
+	HeaderKeyClientVersion   = "x-client-version"
 	HeaderKeyFireBaseLogType = "x-firebase-log-type"
 	HeaderKeyAndroidCert     = "X-Android-Cert"
 	HeaderKeyAndroidPackage  = "X-Android-Package"
@@ -27,7 +28,7 @@ const (
 	HeaderKeyAccept       = "Accept"
 	HeaderKeyCacheControl = "Cache-Control"
 
-	HeaderValueMIMEJSON = "application/json"
+	HeaderValueMIMEJSON      = "application/json"
 	HeaderValueClientVersion = "Android/Fallback/X20000001/FirebaseCore-Android"
 )
 
@@ -38,5 +39,4 @@ var (
 		go_android_utils.DeviceFormatKeyAndroidSDKLevel,
 		go_android_utils.DeviceFormatKeyManufacturer,
 	)
-
 )

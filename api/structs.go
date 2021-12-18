@@ -37,23 +37,23 @@ type FirebaseDevice struct {
 	Device *andutils.Device `json:"device"`
 	// Other Firebase related constants...
 	AndroidPackage string `json:"android_package"`
-	AndroidCert string `json:"android_certificate"`
-	GoogleAPIKey string `json:"google_api_key"`
-	ProjectID string `json:"project_id"`
+	AndroidCert    string `json:"android_certificate"`
+	GoogleAPIKey   string `json:"google_api_key"`
+	ProjectID      string `json:"project_id"`
 }
 
 type FirebaseAuthentication struct {
-	AccessToken string
-	Expires time.Time
+	AccessToken  string
+	Expires      time.Time
 	RefreshToken string
-	IDToken string
+	IDToken      string
 }
 
 type auxFirebaseAuthentication struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn int64 `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int64  `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
-	IDToken string `json:"id_token"`
+	IDToken      string `json:"id_token"`
 }
 
 func (fa *FirebaseAuthentication) MarshalJSON() ([]byte, error) {
@@ -81,29 +81,36 @@ func (fa *FirebaseAuthentication) UnmarshalJSON(data []byte) error {
 }
 
 type SecureTokenRefreshResponse struct {
-	AccessToken string
-	Expires time.Time
+	AccessToken  string
+	Expires      time.Time
 	RefreshToken string
-	IDToken string
-	TokenType string
-	UserID string
-	ProjectID string
+	IDToken      string
+	TokenType    string
+	UserID       string
+	ProjectID    string
+}
+
+type AuthResponse struct {
+	Token    string
+	Expires  time.Time
+	Metadata string
+	Scopes   []string
 }
 
 type auxSecureTokenRefreshResponse struct {
-	AccessToken string
-	ExpiresIn int64
+	AccessToken  string
+	ExpiresIn    int64
 	RefreshToken string
-	IDToken string
-	TokenType string
-	UserID string
-	ProjectID string
+	IDToken      string
+	TokenType    string
+	UserID       string
+	ProjectID    string
 }
 
 func (str *SecureTokenRefreshResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&auxSecureTokenRefreshResponse{
 		AccessToken:  str.AccessToken,
-		ExpiresIn:      str.Expires.Unix(),
+		ExpiresIn:    str.Expires.Unix(),
 		RefreshToken: str.RefreshToken,
 		IDToken:      str.IDToken,
 		TokenType:    str.TokenType,
@@ -132,30 +139,30 @@ func (str *SecureTokenRefreshResponse) UnmarshalJSON(data []byte) error {
 }
 
 type GoogleVerifyPasswordResponse struct {
-	Expires time.Time
+	Expires      time.Time
 	RefreshToken string
-	IDToken string
-	Kind string
-	Email string
-	LocalID string
-	DisplayName string
-	Registered bool
+	IDToken      string
+	Kind         string
+	Email        string
+	LocalID      string
+	DisplayName  string
+	Registered   bool
 }
 
 type auxGoogleVerifyPasswordResponse struct {
-	ExpiresIn string
+	ExpiresIn    string
 	RefreshToken string
-	IDToken string
-	Kind string
-	Email string
-	LocalID string
-	DisplayName string
-	Registered bool
+	IDToken      string
+	Kind         string
+	Email        string
+	LocalID      string
+	DisplayName  string
+	Registered   bool
 }
 
 func (gvp *GoogleVerifyPasswordResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&auxGoogleVerifyPasswordResponse{
-		ExpiresIn:      strconv.FormatInt(gvp.Expires.Unix(), 10),
+		ExpiresIn:    strconv.FormatInt(gvp.Expires.Unix(), 10),
 		RefreshToken: gvp.RefreshToken,
 		IDToken:      gvp.IDToken,
 		Kind:         gvp.Kind,
@@ -191,12 +198,12 @@ func (gvp *GoogleVerifyPasswordResponse) UnmarshalJSON(data []byte) error {
 }
 
 type VerifyPasswordRequestBody struct {
-	Email string `json:"email"`
-	Password string `json:"password"`
-	ReturnSecureToken bool `json:"returnSecureToken"`
+	Email             string `json:"email"`
+	Password          string `json:"password"`
+	ReturnSecureToken bool   `json:"returnSecureToken"`
 }
 
 type RefreshSecureTokenRequestBody struct {
-	GrantType string `json:"grantType"`
+	GrantType    string `json:"grantType"`
 	RefreshToken string `json:"refreshToken"`
 }

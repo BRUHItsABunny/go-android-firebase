@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/BRUHItsABunny/go-android-firebase/constants"
+	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"net/http"
 	"net/url"
 )
@@ -13,8 +14,8 @@ import (
 func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, data *NotifyInstallationRequestBody) (*http.Request, error) {
 	var (
 		body []byte
-		req *http.Request
-		err error
+		req  *http.Request
+		err  error
 	)
 
 	body, err = json.Marshal(data)
@@ -31,8 +32,8 @@ func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, data
 func VerifyPasswordRequest(ctx context.Context, device *FirebaseDevice, data *VerifyPasswordRequestBody) (*http.Request, error) {
 	var (
 		body []byte
-		req *http.Request
-		err error
+		req  *http.Request
+		err  error
 	)
 
 	body, err = json.Marshal(data)
@@ -50,8 +51,8 @@ func VerifyPasswordRequest(ctx context.Context, device *FirebaseDevice, data *Ve
 func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, data *RefreshSecureTokenRequestBody) (*http.Request, error) {
 	var (
 		body []byte
-		req *http.Request
-		err error
+		req  *http.Request
+		err  error
 	)
 
 	body, err = json.Marshal(data)
@@ -61,6 +62,28 @@ func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, data
 			req.URL.RawQuery = url.Values{"key": {device.GoogleAPIKey}}.Encode()
 			req.Header = DefaultHeadersFirebase(device, false, false, true)
 		}
+	}
+
+	return req, err
+}
+
+func Auth(ctx context.Context, device *andutils.Device, data url.Values, email, masterToken string) (*http.Request, error) {
+	var (
+		req *http.Request
+		err error
+	)
+
+	data["Email"] = []string{email}
+	data["Token"] = []string{masterToken}
+
+	data["androidId"] = []string{device.Id.ToHexString()}
+	data["lang"] = []string{device.Locale.ToLocale("-", true)}
+	data["device_country"] = []string{device.Locale.GetCountry(false)}
+	data["sdk_version"] = []string{device.Version.ToAndroidSDK()}
+
+	req, err = http.NewRequestWithContext(ctx, "POST", EndpointAuth, bytes.NewBufferString(data.Encode()))
+	if err == nil {
+		req.Header = DefaultHeadersAuth(device)
 	}
 
 	return req, err

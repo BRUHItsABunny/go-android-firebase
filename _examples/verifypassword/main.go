@@ -6,7 +6,7 @@ import (
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
 	go_android_firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
 	go_android_firebase_client "github.com/BRUHItsABunny/go-android-firebase/client"
-	andutilsdb "github.com/BRUHItsABunny/go-android-utils/database"
+	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -15,7 +15,7 @@ func main() {
 	hClient := gokhttp.GetHTTPClient(opts)
 	// _ = hClient.SetProxy("http://127.0.0.1:8888")
 	device := &go_android_firebase_api.FirebaseDevice{
-		Device:         andutilsdb.GetRandomDevice(),
+		Device:         andutils.GetRandomDevice(),
 		AndroidPackage: "com.barcodelookup",
 		AndroidCert:    "526E7514F042F15966600565485F39F98288453F",
 		GoogleAPIKey:   "",

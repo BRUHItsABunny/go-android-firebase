@@ -58,6 +58,9 @@ func AuthResult(resp *http.Response) (*AuthResponse, error) {
 			case "it":
 				result.Token = string(entryParts[1])
 				break
+			case "Auth":
+				result.Token = string(entryParts[1])
+				break
 			default:
 				continue
 			}

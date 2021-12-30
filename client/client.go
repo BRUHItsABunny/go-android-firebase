@@ -63,6 +63,42 @@ func (c *FireBaseClient) VerifyPassword(ctx context.Context, data *api.VerifyPas
 	return result, err
 }
 
+func (c *FireBaseClient) SetAccountInfo(ctx context.Context, data *api.SetAccountInfoRequestBody) (*api.GoogleSetAccountInfoResponse, error) {
+	var (
+		result = new(api.GoogleSetAccountInfoResponse)
+		req    *http.Request
+		resp   *http.Response
+		err    error
+	)
+
+	req, err = api.SetAccountInto(ctx, c.Device, data)
+	if err == nil {
+		resp, err = c.Client.Do(req)
+		if err == nil {
+			result, err = api.SetAccountInfoResult(resp)
+		}
+	}
+	return result, err
+}
+
+func (c *FireBaseClient) SignUpNewUser(ctx context.Context, data *api.SignUpNewUserRequestBody) (*api.GoogleSignUpNewUserResponse, error) {
+	var (
+		result = new(api.GoogleSignUpNewUserResponse)
+		req    *http.Request
+		resp   *http.Response
+		err    error
+	)
+
+	req, err = api.SignUpNewUser(ctx, c.Device, data)
+	if err == nil {
+		resp, err = c.Client.Do(req)
+		if err == nil {
+			result, err = api.SignUpNewUserResult(resp)
+		}
+	}
+	return result, err
+}
+
 func (c *FireBaseClient) RefreshSecureToken(ctx context.Context, data *api.RefreshSecureTokenRequestBody) (*api.SecureTokenRefreshResponse, error) {
 	var (
 		result = new(api.SecureTokenRefreshResponse)

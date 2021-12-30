@@ -138,6 +138,24 @@ func (str *SecureTokenRefreshResponse) UnmarshalJSON(data []byte) error {
 	return err
 }
 
+type ProviderUserInfo struct {
+	ProviderID  string `json:"providerId"`
+	DisplayName string `json:"displayName"`
+	FederateID  string `json:"federateId"`
+	Email       string `json:"email,omitempty"`
+	RawID       string `json:"rawId"`
+}
+
+type GoogleSetAccountInfoResponse struct {
+	Kind             string              `json:"kind"`
+	Email            string              `json:"email"`
+	LocalID          string              `json:"localId"`
+	DisplayName      string              `json:"displayName"`
+	ProviderUserInfo []*ProviderUserInfo `json:"providerUserInfo"`
+	PasswordHash     string              `json:"passwordHash"`
+	EmailVerified    bool                `json:"emailVerified"`
+}
+
 type GoogleVerifyPasswordResponse struct {
 	Expires      time.Time
 	RefreshToken string
@@ -150,14 +168,14 @@ type GoogleVerifyPasswordResponse struct {
 }
 
 type auxGoogleVerifyPasswordResponse struct {
-	ExpiresIn    string
-	RefreshToken string
-	IDToken      string
-	Kind         string
-	Email        string
-	LocalID      string
-	DisplayName  string
-	Registered   bool
+	ExpiresIn    string `json:"expiresIn"`
+	RefreshToken string `json:"refreshToken"`
+	IDToken      string `json:"idToken"`
+	Kind         string `json:"kind"`
+	Email        string `json:"email"`
+	LocalID      string `json:"localId"`
+	DisplayName  string `json:"displayName"`
+	Registered   bool   `json:"registered"`
 }
 
 func (gvp *GoogleVerifyPasswordResponse) MarshalJSON() ([]byte, error) {
@@ -197,10 +215,117 @@ func (gvp *GoogleVerifyPasswordResponse) UnmarshalJSON(data []byte) error {
 	return err
 }
 
+type GoogleSignUpNewUserResponse struct {
+	Expires      time.Time
+	RefreshToken string
+	IDToken      string
+	Kind         string
+	Email        string
+	LocalID      string
+}
+
+type auxGoogleSignUpNewUserResponse struct {
+	ExpiresIn    string
+	RefreshToken string
+	IDToken      string
+	Kind         string
+	Email        string
+	LocalID      string
+}
+
+func (gsp *GoogleSignUpNewUserResponse) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&auxGoogleSignUpNewUserResponse{
+		ExpiresIn:    strconv.FormatInt(gsp.Expires.Unix(), 10),
+		RefreshToken: gsp.RefreshToken,
+		IDToken:      gsp.IDToken,
+		Kind:         gsp.Kind,
+		Email:        gsp.Email,
+		LocalID:      gsp.LocalID,
+	})
+}
+
+func (gsp *GoogleSignUpNewUserResponse) UnmarshalJSON(data []byte) error {
+	var tmpExpiresIn int64
+	aux := new(auxGoogleSignUpNewUserResponse)
+	err := json.Unmarshal(data, aux)
+	if err == nil {
+		gsp.RefreshToken = aux.RefreshToken
+		gsp.IDToken = aux.IDToken
+		gsp.Kind = aux.Kind
+		gsp.Email = aux.Email
+		gsp.LocalID = aux.LocalID
+		tmpExpiresIn, err = strconv.ParseInt(aux.ExpiresIn, 10, 64)
+		if err == nil {
+			if tmpExpiresIn > 3600 { // If we store it
+				gsp.Expires = time.Unix(tmpExpiresIn, 0)
+			} else { // If we receive it from firebase
+				gsp.Expires = time.Now().Add(time.Duration(tmpExpiresIn) * time.Second)
+			}
+		}
+	}
+	return err
+}
+
+type FirebaseRequest struct {
+	ReturnSecureToken bool   `json:"returnSecureToken"`
+	AuthToken         string `json:"idToken,omitempty"`
+}
+
+type SetAccountInfoRequestBody struct {
+	FirebaseRequest
+	Data map[string]interface{}
+}
+
+func (sai *SetAccountInfoRequestBody) MarshalJSON() ([]byte, error) {
+	targetMap := make(map[string]interface{})
+	for k, v := range sai.Data {
+		targetMap[k] = v
+	}
+	if len(sai.AuthToken) > 0 {
+		targetMap["idToken"] = sai.AuthToken
+	}
+	targetMap["returnSecureToken"] = sai.ReturnSecureToken
+
+	return json.Marshal(&targetMap)
+}
+
+func (sai *SetAccountInfoRequestBody) UnmarshalJSON(data []byte) error {
+	targetMap := make(map[string]interface{})
+	err := json.Unmarshal(data, &targetMap)
+	if err == nil {
+		returnSecureToken, ok := targetMap["returnSecureToken"]
+		if ok {
+			switch value := returnSecureToken.(type) {
+			case bool:
+				sai.ReturnSecureToken = value
+				break
+			}
+		}
+
+		idToken, ok := targetMap["idToken"]
+		if ok {
+			switch value := idToken.(type) {
+			case string:
+				sai.AuthToken = value
+				break
+			}
+		}
+		delete(targetMap, "idToken")
+		delete(targetMap, "returnSecureToken")
+		sai.Data = targetMap
+	}
+	return err
+}
+
 type VerifyPasswordRequestBody struct {
 	Email             string `json:"email"`
 	Password          string `json:"password"`
 	ReturnSecureToken bool   `json:"returnSecureToken"`
+}
+
+type SignUpNewUserRequestBody struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type RefreshSecureTokenRequestBody struct {

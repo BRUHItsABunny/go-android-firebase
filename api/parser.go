@@ -28,6 +28,24 @@ func VerifyPasswordResult(resp *http.Response) (*GoogleVerifyPasswordResponse, e
 	return result, err
 }
 
+func SignUpNewUserResult(resp *http.Response) (*GoogleSignUpNewUserResponse, error) {
+	result := new(GoogleSignUpNewUserResponse)
+	responseBody, err := io.ReadAll(resp.Body)
+	if err == nil {
+		err = json.Unmarshal(responseBody, result)
+	}
+	return result, err
+}
+
+func SetAccountInfoResult(resp *http.Response) (*GoogleSetAccountInfoResponse, error) {
+	result := new(GoogleSetAccountInfoResponse)
+	responseBody, err := io.ReadAll(resp.Body)
+	if err == nil {
+		err = json.Unmarshal(responseBody, result)
+	}
+	return result, err
+}
+
 func RefreshSecureTokenResult(resp *http.Response) (*SecureTokenRefreshResponse, error) {
 	result := new(SecureTokenRefreshResponse)
 	responseBody, err := io.ReadAll(resp.Body)

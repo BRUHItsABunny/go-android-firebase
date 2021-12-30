@@ -6,13 +6,16 @@ import (
 )
 
 const (
-	protocol = "https://"
-	host     = protocol + "firebaseinstallations.googleapis.com"
+	protocol     = "https://"
+	host         = protocol + "firebaseinstallations.googleapis.com"
+	firebaseHost = protocol + "www.googleapis.com/identitytoolkit/v3/relyingparty/"
 
 	endpointProjects = host + "/v1/projects/%s"
 
 	EndpointInstallations      = endpointProjects + "/installations"
-	EndpointVerifyPassword     = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword"
+	EndpointVerifyPassword     = firebaseHost + "verifyPassword"
+	EndpointSignUpNewUser      = firebaseHost + "signupNewUser"
+	EndpointSetAccountInto     = firebaseHost + "setAccountInfo"
 	EndpointRefreshSecureToken = "https://securetoken.googleapis.com/v1/token"
 	EndpointAuth               = "https://android.googleapis.com/auth"
 

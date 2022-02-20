@@ -124,6 +124,8 @@ func RandomAppFID() (string, error) {
 	if err == nil {
 		leastBits, mostBits := GetLeastMostSignificantBits(uuidObj.String())
 		uuidBytes := make([]byte, 17)
+		// src: https://docs.oracle.com/javase/7/docs/api/java/nio/ByteBuffer.html
+		// "The order of a newly-created byte buffer is always BIG_ENDIAN."
 		binary.BigEndian.PutUint64(uuidBytes[:8], uint64(mostBits))
 		binary.BigEndian.PutUint64(uuidBytes[8:16], uint64(leastBits))
 		uuidBytes[16] = uuidBytes[0]

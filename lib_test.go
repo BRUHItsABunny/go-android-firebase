@@ -2,6 +2,7 @@ package go_android_firebase
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/BRUHItsABunny/go-android-firebase/api"
 	client2 "github.com/BRUHItsABunny/go-android-firebase/client"
@@ -15,14 +16,16 @@ import (
 func testHTTPClient(proxy string) *http.Client {
 	client := http.DefaultClient
 	client.Transport = http.DefaultTransport
-	proxyURL, _ := url.Parse(proxy)
-	client.Transport.(*http.Transport).Proxy = http.ProxyURL(proxyURL)
+	if len(proxy) > 0 {
+		proxyURL, _ := url.Parse(proxy)
+		client.Transport.(*http.Transport).Proxy = http.ProxyURL(proxyURL)
+	}
 	return client
 }
 
 func TestRegister3(t *testing.T) {
 	ctx := context.Background()
-	device, _ := andutils.GetDBDevice("oneplus9pro")
+	device := andutils.GetRandomDevice()
 	appData := &api.FirebaseAppData{
 		PackageID:            "org.wikipedia",
 		PackageCertificate:   "D21A6A91AA75C937C4253770A8F7025C6C2A8319",
@@ -42,7 +45,7 @@ func TestRegister3(t *testing.T) {
 		CheckinSecurityToken: 0,
 	}
 
-	client := testHTTPClient("http://127.0.0.1:8888")
+	client := testHTTPClient("")
 	fClient := client2.NewFirebaseClient(client, fDevice, appData)
 	authResult, err := fClient.NotifyInstallation(ctx)
 	if err != nil {
@@ -54,7 +57,7 @@ func TestRegister3(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(spew.Sdump(checkinResult))
+	fmt.Println(fmt.Sprintf("AndroidID (checkin): %d\nSecurityToken: %d", checkinResult.AndroidId, checkinResult.SecurityToken))
 
 	result, err := fClient.C2DMRegisterAndroid(ctx)
 	if err != nil {
@@ -62,4 +65,11 @@ func TestRegister3(t *testing.T) {
 	}
 
 	fmt.Println("notificationToken: \n", result)
+
+	// Check if fDevice was updated with the new information returned by the api calls
+	prettyBytes, err := json.MarshalIndent(fDevice, "", "    ")
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(prettyBytes))
 }

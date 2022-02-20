@@ -200,6 +200,17 @@ func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context) (string, error
 		resp, err = c.Client.Do(req)
 		if err == nil {
 			result, err = api.AndroidRegisterResult(resp)
+			if err == nil {
+				if c.Device.FirebaseInstallations == nil {
+					c.Device.FirebaseInstallations = map[string]*api.FirebaseInstallationData{}
+				}
+				installation, ok := c.Device.FirebaseInstallations[c.AppData.PackageID]
+				if !ok {
+					installation = &api.FirebaseInstallationData{}
+				}
+				installation.NotificationToken = result
+				c.Device.FirebaseInstallations[c.AppData.PackageID] = installation
+			}
 		}
 	}
 	return result, err

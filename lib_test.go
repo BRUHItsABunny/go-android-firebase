@@ -2,6 +2,7 @@ package go_android_firebase
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/BRUHItsABunny/go-android-firebase/api"
@@ -45,7 +46,7 @@ func TestRegister3(t *testing.T) {
 		CheckinSecurityToken: 0,
 	}
 
-	client := testHTTPClient("")
+	client := testHTTPClient("http://127.0.0.1:8888")
 	fClient := client2.NewFirebaseClient(client, fDevice, appData)
 	authResult, err := fClient.NotifyInstallation(ctx)
 	if err != nil {
@@ -72,4 +73,16 @@ func TestRegister3(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println(string(prettyBytes))
+}
+
+func TestRandomAppFID(t *testing.T) {
+	fmt.Println(RandomAppFID())
+}
+
+func TestBits(t *testing.T) {
+	fmt.Println(api.GetLeastMostSignificantBits("a316b044-0157-1000-efe6-40fc5d2f0036"))
+}
+
+func TestConvert(t *testing.T) {
+	fmt.Println(base64.StdEncoding.DecodeString("cA=="))
 }

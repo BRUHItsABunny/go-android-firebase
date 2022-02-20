@@ -11,5 +11,6 @@ func NewFirebaseClient(hClient *http.Client, device *api.FirebaseDevice, appData
 }
 
 func RandomAppFID() string {
-	return api.RandomAppFID()
+	result, _ := api.RandomAppFID()
+	return result
 }

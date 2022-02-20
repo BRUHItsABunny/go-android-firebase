@@ -21,7 +21,7 @@ func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, appD
 		err  error
 	)
 
-	fid := RandomAppFID()
+	fid, _ := RandomAppFID()
 	gmpAppID := appData.GMPAppID
 	authVersion := appData.AuthVersion
 	sdkVersion := appData.SdkVersion

@@ -24,18 +24,17 @@ func TestRegister3(t *testing.T) {
 	ctx := context.Background()
 	device, _ := andutils.GetDBDevice("oneplus9pro")
 	appData := &api.FirebaseAppData{
-		// Censored app data for this test
-		PackageID:            "",
-		PackageCertificate:   "",
-		GoogleAPIKey:         "",
-		FirebaseProjectID:    "",
-		NotificationSenderID: "",
-		GMPAppID:             "",
-		AppVersion:           "",
-		AppVersionWithBuild:  "",
-		AuthVersion:          "",
-		SdkVersion:           "",
-		AppNameHash:          "",
+		PackageID:            "org.wikipedia",
+		PackageCertificate:   "D21A6A91AA75C937C4253770A8F7025C6C2A8319",
+		GoogleAPIKey:         "AIzaSyC7m9NhFXHiUPryquw7PecqFO0d9YPrVNE",
+		FirebaseProjectID:    "pushnotifications-73c5e",
+		GMPAppID:             "1:296120793014:android:34d2ba8d355ca9259a7317",
+		NotificationSenderID: "296120793014",
+		AppVersion:           "2.7.50394-r-2022-02-10",
+		AppVersionWithBuild:  "50394",
+		AuthVersion:          "FIS_v2",
+		SdkVersion:           "a:17.0.0",
+		AppNameHash:          "R1dAH9Ui7M-ynoznwBdw01tLxhI",
 	}
 	fDevice := &api.FirebaseDevice{
 		Device:               device,

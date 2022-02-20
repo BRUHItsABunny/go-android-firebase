@@ -5,7 +5,7 @@ replace github.com/BRUHItsABunny/go-android-firebase => ../../
 require (
 	github.com/BRUHItsABunny/gOkHttp v0.0.6
 	github.com/BRUHItsABunny/go-android-firebase v0.0.3
-	github.com/BRUHItsABunny/go-android-utils v0.0.20
+	github.com/BRUHItsABunny/go-android-utils v0.0.26
 	github.com/davecgh/go-spew v1.1.1
 )
 

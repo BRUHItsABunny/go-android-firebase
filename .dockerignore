@@ -1,0 +1,6 @@
+*.md
+*.go
+**/*.go
+_resources
+_examples
+go.*

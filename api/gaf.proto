@@ -1,0 +1,42 @@
+syntax = "proto3";
+option go_package = "github.com/BRUHItsABunny/go-android-firebase/api";
+
+import "google/protobuf/timestamp.proto";
+import "android_proto.proto";
+
+message FirebaseAuthentication {
+  string accessToken = 1;
+  google.protobuf.Timestamp expires = 2;
+  string refreshToken = 3;
+  string idToken = 4;
+}
+
+message FirebaseInstallationData {
+  string FirebaseInstallationID = 1;
+  string notificationToken = 2;
+  FirebaseAuthentication installationAuthentication = 3; // Upon NotifyInstall
+  // TODO: Support more authentication?
+}
+
+message FirebaseAppData {
+  string packageID = 1; // com.app.my
+  string packageCertificate = 2; // HEX string in UPPER case
+  string googleAPIKey = 3; // Some string, typically starts with "AIza"
+  string firebaseProjectID = 4; // some string identifier equal to what the project ID is in Firebase Console
+  string notificationSenderID = 5; // int string
+  string GMPAppID = 6; // 1:NotificationSenderID:android:SOME_ID
+  string AppVersion = 7; // Major.Minor.Micro
+  string AppVersionWithBuild = 8; // Similar to AppVersion but without periods and also build number appended
+  string authVersion = 9; // Always FIS_v2
+  string sdkVersion = 10; // This can vary between apps
+  string appNameHash = 11;
+}
+
+message FirebaseDevice {
+  android_utils.Device device = 1;
+  int64 checkinAndroidID = 2;
+  uint64 checkinSecurityToken = 3;
+  // app Package ID : auth Obj
+  map<string, FirebaseInstallationData> firebaseInstallations = 4;
+}
+

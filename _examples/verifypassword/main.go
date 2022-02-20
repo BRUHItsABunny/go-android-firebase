@@ -15,18 +15,20 @@ func main() {
 	hClient := gokhttp.GetHTTPClient(opts)
 	// _ = hClient.SetProxy("http://127.0.0.1:8888")
 	device := &go_android_firebase_api.FirebaseDevice{
-		Device:         andutils.GetRandomDevice(),
-		AndroidPackage: "com.barcodelookup",
-		AndroidCert:    "526E7514F042F15966600565485F39F98288453F",
-		GoogleAPIKey:   "",
-		ProjectID:      "android-app-9d60d",
+		Device: andutils.GetRandomDevice(),
+	}
+	appData := &go_android_firebase_api.FirebaseAppData{
+		PackageID:          "com.barcodelooku",
+		PackageCertificate: "526E7514F042F15966600565485F39F98288453F",
+		GoogleAPIKey:       "",
+		FirebaseProjectID:  "android-app-9d60d",
 	}
 	var (
 		email    = ""
 		password = ""
 	)
 	ctx := context.Background()
-	client := go_android_firebase_client.NewFirebaseClient(hClient.Client, device)
+	client := go_android_firebase_client.NewFirebaseClient(hClient.Client, device, appData)
 
 	req := &go_android_firebase_api.VerifyPasswordRequestBody{
 		Email:             email,

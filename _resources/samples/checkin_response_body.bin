@@ -1,0 +1,775 @@
+‡¶ë˚Ó/**
+"adaptive_wifi_heartbeat_bad_rst_hbtrue*!
+
+android_id3592470633984623859*D
+!appstate.internal_server_api_path/appstate/v1whitelisted/states/*"
+appstate.max_state_bytes262144*8
+0auth_coffee_deprecate_nfc_trustlet_for_new_userstrue*F
+>auth_coffee_enable_bluetooth_trustlet_for_insecure_connectionstrue*?
+3auth_coffee_fetch_home_work_address_interval_millis86400000*1
+)auth_coffee_is_bluetooth_trustlet_enabledtrue*3
++auth_coffee_is_face_unlock_trustlet_enabledtrue*+
+#auth_coffee_is_nfc_trustlet_enabledtrue*4
+,auth_coffee_is_voice_unlock_trustlet_enabledtrue*9
+,auth_coffee_voice_unlock_minimum_gsa_version	300404000*3
+.auth_email_check_on_token_request_interval_sec1*
+auth_enable_clearcuttrue*˚
+auth_games_whitelisted_scopesŸhttps://www.googleapis.com/auth/appstate,https://www.googleapis.com/auth/drive.appdata,https://www.googleapis.com/auth/games,https://www.googleapis.com/auth/games_lite,https://www.googleapis.com/auth/plus.me,https://www.googleapis.com/auth/plus.login,https://www.googleapis.com/auth/plus.moments.write,https://www.googleapis.com/auth/display_ads*(
+ auth_get_token_sample_percentage0.03*5
+.auth_grant_credential_screen_sample_percentage0.1*U
+-auth_proximity_features_bluetooth_server_uuid$704EE561-3782-405A-A14B-2D47A2DDCDDF*+
+#auth_use_games_theme_consent_screentrue*4
+*babel_call_media_type_refresh_max_delay_ms120000*3
+*babel_call_media_type_refresh_min_delay_ms60000*5
+,babel_conc_service_max_wakelock_hold_time_ms40000*;
+5babel_conc_service_network_group_max_thread_pool_size12*0
+)babel_conc_service_thread_timeout_seconds300*?
+7babel_delay_initialization_latch_enable_serial_executortrue*$
+babel_enable_force_warm_synctrue*)
+!babel_enable_gcm_message_receivertrue*M
+Dbabel_fix_double_ringing_issue_caused_by_sim_call_manager_change_keyfalse*P
+Gbabel_fix_double_ringing_issue_caused_by_sim_call_manager_change_key_v2false*c
+Zbabel_fix_double_ringing_issue_caused_by_sim_call_manager_change_key_with_permission_checkfalse*3
++babel_fix_stale_merged_contacts_details_keytrue*8
+/babel_foreground_periodic_warm_sync_interval_ms30000*K
+"babel_google_voice_add_balance_url%https://voice.google.com/billing?a=ac*4
+,babel_hangout_enable_h264_bitstream_rewritertrue*/
+*babel_hangout_encoder_quality_scaling_mode1*'
+babel_healthcheck_timer_enabledtrue*/
+'babel_incremental_load_wakelock_fix_r22true*/
+'babel_incremental_load_wakelock_fix_r23true*2
+)babel_participant_fast_poll_period_millis10000* 
+babel_phone_verificationtrue* 
+babel_plog_flush_delay_ms500*0
+$babel_rtcs_max_wakelock_hold_time_ms86400000*2
+*babel_send_message_event_observed_to_replytrue*(
+ babel_send_silent_crash_feedbacktrue*(
+babel_sms_dep_banner_persistentfalse*
+babel_sms_dep_enabledtrue*&
+babel_sms_dep_notif_19_enabledtrue*'
+babel_sms_dep_snackbar_enabledfalse*+
+#babel_sms_dep_standalone_19_enabledtrue*&
+babel_sms_force_dep_19_enabledtrue*.
+babel_stickers_query_limit_ms1000000000000*'
+backup_use_usb_guided_transferfalse*'
+betterbug_enable_battery_metrictrue*%
+betterbug_enable_crash_metrictrue*&
+betterbug_enable_memory_metrictrue*'
+betterbug_enable_network_metrictrue*'
+betterbug_enable_package_metrictrue*%
+betterbug_enable_timer_metrictrue* 
+books:enable_gifting_edutrue*
+books:enable_gifting_qtrue*&
+books:enable_non_comics_seriestrue*
+books:enable_onboardingtrue*&
+books:enable_passage_snapshotfalse*'
+books:enable_quick_setting_edufalse*0
+'books:fail_fast_after_manifest_deletionfalse*+
+#books:first_run_activity_timeout_ms5000**
+"books:force-ignore-display-densitytrue*'
+ books:free_user_category_displayTOP*
+books:max_upload_size_mb100*
+books:nis_notifytrue*"
+books:notes_export_enabledtrue*
+books:obv3_done_buttonV1*!
+books:obv3_sample_page_typeV1*"
+books:obv3_welcome_page_typeV2*ç
+books:onboard_genre_headero{ "genreStrings" : [ { "id" : 1000000004, "msg" : "Want to start reading? Tell us what you like to read." } ] }**
+ books:paid_user_category_displayBOTTOM*'
+books:parental_controls_enabledtrue*/
+'books:parental_controls_setting_enabledtrue*
+books:pdr_notifytrue*C
+books:play_analytics_server$https://play.googleapis.com/play/log*'
+books:playlog_anonymous_enabledtrue*
+books:playlog_enabledfalse* 
+books:playlog_v2_enabledtrue*8
+0books:read_now_cluster_refresh_minutes_oplusplus1440*$
+books:reading_back_equals_uptrue*
+books:rwe_notifytrue*!
+books:show_empty_uploadedtrue*&
+books:use_fast_book_open_api_2true*
+c2dm_auth_token1*!
+calculator_primes_apksizetrue*!
+calculator_primes_batterytrue*
+calculator_primes_crashtrue*!
+calculator_primes_latencytrue* 
+calculator_primes_memorytrue*"
+camera:camcorder.metadatafalse*)
+!camera:camera.coach.horizon_leveltrue*B
+9camera:camera.lenslite.enable_foreign_contact_recognitionfalse*<
+3camera:camera.lenslite.enable_text_wifi_credentialsfalse*4
++camera:camera.lenslite.force_cpu_processingfalse*:
+3camera:camera.lenslite.trivial_feature_enabled_bits0x0*!
+ce.cm.allow_user_feedbacktrue*
+ce.cm.feedback_cooldown36*&
+ce.cm.filtered_data_fail_cause4111*4
++ce.cm.ignored_call_drop_cause_for_bugreport61441*^
+)ce.cm.ims_reg_check_whitelist_carrier_ids11, 1839, 1404, 1345, 1187, 1788, 2146, 2018, 1505*!
+ce.cm.notify_bad_feedbacktrue*#
+ce.cm.notify_mmssms_db_losttrue*)
+ ce.cm.notify_no_ims_registrationfalse*)
+ ce.cm.notify_no_wfc_registrationfalse*.
+&ce.wa.att.enable_device_build_solutiontrue*-
+%ce.wa.o2.enable_device_build_solutiontrue*!
+ce.wa.spcs.use_first_imeitrue*'
+checkin_collect_mvno_attributestrue**
+checkin_expid_18500632cast_cy_mdns_10s*
+checkin_interval170610*
+checkin_logging_policyNONE*%
+checkin_trigger_on_sim_changetrue*I
+(chromecast:assistant_supported_languagesen-US,en-GB,en-CA,fr-CA,en-AU*7
+.chromecast:enable_periodic_forced_ontrimmemoryfalse*/
+'chromecast:enable_personalized_backdroptrue*6
+!chromecast:mu_supported_languagesen-US,en-GB,en-AU*N
+2deskclock:audio_ringtone_haptics_supported_devicesflame,coral,raven,oriole*C
+deskclock:calm_country_codes#AU,BR,CA,DE,ES,FR,GB,JP,KR,MX,PT,US*F
+6deskclock:premium_haptics_experience_supported_devicesraven,oriole*C
+3deskclock:silent_ringtone_haptics_supported_devicesraven,oriole*¥
+deskclock:spotify_country_codesêAD,AE,AL,AR,AT,AU,BA,BE,BG,BH,BO,BR,BY,CA,CH,CL,CO,CR,CY,CZ,DE,DK,DO,DZ,EC,EE,EG,ES,FI,FR,GB,GR,GT,HK,HN,HR,HU,ID,IE,IL,IN,IS,IT,JO,JP,KW,KZ,LB,LI,LT,LU,LV,MA,MC,MD,ME,MK,MT,MX,MY,NI,NL,NO,NZ,OM,PA,PE,PH,PL,PS,PT,PY,QA,RO,RS,RU,SA,SE,SG,SI,SK,SV,TH,TN,TR,TW,UA,US,UY,VN,ZA*Z
+#deskclock:sunrise_supported_devices3blueline,crosshatch,coral,flame,redfin,raven,oriole*E
+deskclock:timezone_api_key'AIzaSyBUcCPilPlw0sWDaXdmNScHS4N0jm31D-I*º
+deskclock:ytm_country_codesúAE,AR,AS,AT,AU,AW,BA,BE,BG,BH,BM,BO,BR,BY,CA,CH,CL,CO,CR,CY,CZ,DE,DK,DO,EC,EE,EG,ES,FI,FR,GB,GF,GP,GR,GT,GU,HK,HN,HR,HU,ID,IE,IL,IN,IS,IT,JP,KR,KW,KY,LB,LI,LT,LU,LV,MK,MP,MT,MX,MY,NG,NI,NL,NO,NZ,OM,PA,PE,PF,PG,PH,PL,PR,PT,PY,QA,RO,RS,RU,SA,SE,SG,SI,SK,SV,TC,TH,TR,TW,UA,US,UY,VE,VI,ZA*
+device_countryde*)
+device_registration_time1644692400000*S
+device_update_detail_url7https://support.google.com/android/answer/7680439?hl=en*.
+)dialer_reverse_lookup_min_version_enabled1*)
+display_dialog_window_period	1700-0500*6
+-drive:content_maintenance_min_interval_millis31000*<
+&drive:disable_features_longhorn_and_upBINARY_DIFF_UPLOAD*5
+drive:disable_features_manchegoBINARY_DIFF_UPLOAD*
+drive:metrics_logging_mode2*5
+,drive:server_timeout_ms.GET./drive/*/changes20000*3
+*drive:server_timeout_ms.GET./drive/*/files20000*Z
+feedback_tos_pretty_url?https://tools.google.com/userfeedback/external/android/tos.html*S
+feedback_tos_url?https://tools.google.com/userfeedback/external/android/tos.html*)
+!finksy.verify_apps_enable_vole_v3true*0
+(finsky.Checkin__disable_checkin_receivertrue*B
+:finsky.DownloadService__killswitch_enable_aidl_ipc_servicetrue*S
+Kfinsky.GooglePlayProtect__enable_blocking_executor_for_install_verificationtrue*8
+0finsky.PhoneskySetup__enable_p2p_restore_servicetrue*!
+finsky.additional_experiments *-
+$finsky.anti_malware_activity_enabledfalse*√
+2finsky.app_discovery_caller_package_name_whiteliståcom.google.android.apps.nexuslauncher,com.samsung.android.app.galaxyfinder,org.chromium.arc.gms,com.motorola.launcher3,com.android.launcher3*6
+/finsky.app_restore_retry_delay_exponential_base1.0*F
++finsky.app_restore_retry_download_blacklist198,404,498,908,940,944*A
+3finsky.assist_card_dismissal_token_cache_timeout_ms
+7776000000*1
+&finsky.auto_update_wifi_check_interval3600000*%
+finsky.checkin_expid_26025069true*%
+finsky.checkin_expid_26025958true*^
+"finsky.checkout_privacy_policy_url8https://payments.google.com/files/privacy.html?hl=%lang%*0
+(finsky.daily_hygiene_preload_experimentstrue*/
+'finsky.daily_hygiene_probe_all_accountstrue*+
+&finsky.default_purchase_authentication2*x
+3finsky.device_owner_install_policy_allowed_packagesAcom.google.android.gms,com.google.android.apps.enterprise.dmagent*8
+0finsky.device_wide_non_work_profile_phas_enabledtrue*2
+*finsky.device_wide_unknown_source_block_v4true*;
+2finsky.dfe.send_additional_headers_unauth_requestsfalse*-
+%finsky.dfe_search_suggestions_enabledtrue*5
+(finsky.download_bytes_mobile_recommended	104883200*'
+finsky.early_update_timeout_ms15000*0
+#finsky.ec_choice_min_chrome_version	372899999*{
++finsky.emergency_self_update.escape_pod_urlLhttps://www.gstatic.com/play/store/escapepod/standard/config/config.binarypb*/
+'finsky.emergency_self_update.is_enabledtrue*0
+,finsky.emergency_self_update.target_versions *3
++finsky.enable_android_auto_direct_purchasestrue*!
+finsky.enable_details_apitrue*$
+finsky.enable_gaia_recoveryfalse*5
+,finsky.enable_lite_verify_installed_packagesfalse*1
+(finsky.enable_ok_http_tls_1_2_on_JB_plusfalse*+
+#finsky.enable_redeem_gift_card_menutrue*2
+)finsky.enable_unauthenticated_app_updatesfalse*+
+#finsky.enable_webapk_install_policytrue*)
+finsky.extra_menu_item_title	Impressum*J
+finsky.extra_menu_item_url,https://www.google.de/contact/impressum.html**
+"finsky.iabv3_subscriptions_enabledtrue*"
+finsky.install_api.enabledtrue*Ò
+4finsky.install_queue.unconditional_overwrite_reasons∏bulk_update,early_update,enterprise_auto_install,enterprise_auto_install_without_launcher_icon,package_update_service,single_install,tickle,developer_triggered_update,rapid_auto_update*=
+5finsky.installer_postpone_regular_restores_during_suwtrue*&
+finsky.kill_switch_ds_counterstrue*ï
+,finsky.loyalty_signup_interstitial_image_urlehttp://lh3.googleusercontent.com/_6kFk9-qfhMvMNXYS87dEGfHpjGkWlaBEYeoeUkOj7CeRJ8OWndApLBUJ0VKGf4yasxu*6
+.finsky.music_app_subscription_resignup_enabledtrue*'
+finsky.offline_autoscan_enabledtrue*/
+'finsky.offline_autoscan_logging_enabledtrue*<
+3finsky.offline_autoscan_unconsented_devices_enabledfalse*°
+%finsky.peer_app_sharing_api.whitelist˜com.google.android.apps.nbu.files:IHr5oTOmMMQkagbHnAmUanCED0cC7luqU/N5G1N7DxQ,5mm9+LAnvQZ2ECRnHSsDyudQVugIEi4CnIviTxdwbXQ;com.google.android.gms:GXWy8XF3vIml3/MfnmSmyuKBpT3B0dWbHRR/4cgq+gA;com.lenovo.anyshare.gps:vRAqlGaYlgeNucZlshu9PXZpH/Zq6XUZo2NMNMOgJUI;cn.xender:LcUe2xGQXnTnEsEjtCzorW9iNofZEusFHxQRZkbvmrM;com.test.app.p2papp:4zgXuPGanK8Aq7jDeSZGpgQL/zGZ6riVIASvOds9w2Y;*B
+finsky.play_log_server_url$https://play.googleapis.com/play/log*Y
+5finsky.prepare_purchase_cache_sku_list_hash_whitelist 573493260,-1466115739,2042585595*v
+'finsky.prepare_purchase_cache_whitelistKcom.supercell.clashofclans,com.supercell.boombeach,jp.co.mixi.monsterstrike*Ù
+finsky.pss.wl_v2_3p‹com.sec.android.easyMover:34DF0E7A9F1CF1892E45C056B4973CD81CCF148A4050D11AEA4AC5A65F900A42,C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8,0A012131B1BDF9E80EF97D37F3B48362BE363A464C8445ECF83627EBE8493A1E*<
+finsky.read_book_url$https://play.google.com/books/reader*#
+finsky.recovery_logs.grouplg_90*1
+%finsky.recovery_mode.enabled_versions81280000*2
+*finsky.recovery_mode.event_logging_enabledtrue*(
+finsky.recovery_mode.is_enabledfalse*8
+0finsky.recovery_mode.log_recovered_state_enabledtrue*D
+8finsky.recovery_mode.logger.process_safe_logging_enabled81400000*=
+4finsky.recovery_mode.recovered_state_logging_enabledfalse*0
+$finsky.recovery_mode.ssu_v2_versions81430000*$
+finsky.safe_mode.is_enabledfalse*6
+*finsky.safe_self_update.throttle_period_ms43200000*2
+*finsky.send_mvno_related_device_attributestrue*è
+&finsky.subscription_explore_button_urlehttps://play.google.com/store/apps/editorial_collection/promotion_topic_30031d8_subs_center_topicpage*[
+&finsky.support_edit_payment_method_url1https://payments.google.com/manage#paymentMethods*…
+(finsky.third_party_app_overlay_whitelistúcom.google.android.vr.home,com.google.android.vr.home.dev,com.google.android.googlequicksearchbox,com.google.android.play.games,com.google.android.apps.chromecast.app,com.pinterest.dev,com.google.android.instantapps.supervisor,com.google.android.videos,com.google.android.apps.freighter,com.google.android.apps.freighter.beta,com.google.android.apps.travel.onthego,com.google.android.gms,com.google.android.inputmethod.latin,com.google.android.inputmethod.latin.dev,com.google.android.inputmethod.latin.canary,com.google.vr.apps.ornament,com.google.vr.apps.ornament.dev,com.google.android.apps.vega,com.google.android.apps.tycho,com.google.ar.lens,com.google.ar.lens.dev,com.google.android.apps.dreamliner,com.google.android.deskclock,com.google.android.apps.tachyon,com.google.android.gm,com.google.samples.apps.cardboarddemo,com.google.vr.cardboard.paperscope,com.google.android.apps.tips,com.google.android.apps.nbu.files**
+"finsky.unauth_safe_mode.is_enabledtrue*5
+-finsky.verify_apps_amputation_allow_re_enabletrue*-
+%finsky.verify_apps_amputation_enabledtrue*0
+(finsky.verify_apps_amputation_log_errorstrue*:
+2finsky.verify_apps_auto_disable_allow_re_enable_v1true*2
+*finsky.verify_apps_auto_disable_enabled_v1true*5
+-finsky.verify_apps_auto_disable_log_errors_v1true*D
+<finsky.verify_apps_auto_disable_re_enable_false_positives_v1true*9
+1finsky.verify_apps_autoscan_upload_installer_infotrue*.
+&finsky.verify_apps_broadcast_pha_eventtrue*6
+.finsky.verify_apps_enable_multitable_datastoretrue*>
+finsky.verify_apps_hostnameandroid-safebrowsing.google.com*4
+,finsky.verify_apps_implicit_suppress_warningtrue*=
+5finsky.verify_apps_log_snet_id_in_verification_errorstrue*L
+Afinsky.verify_apps_min_gms_version_for_consent_in_secure_settings8400000*@
+8finsky.verify_apps_offline_managed_device_policy_enabledtrue*9
+1finsky.verify_apps_report_autoscan_lite_scan_timetrue*8
+0finsky.verify_apps_restore_notifications_enabledtrue*1
+(finsky.verify_installed_packages_enabledfalse*/
+)finsky.verify_system_packages_probability.7*'
+finsky.wear.auto_install_enabletrue*p
+.finsky.wear.auto_install_uninstall_blockedlist>com.google.android.apps.enterprise.dmagent,com.weather.Weather*0
+,finsky.wear.auto_install_uninstall_whitelist *)
+!finsky.wear.auto_uninstall_enabletrue*~
+!finsky.wear.auto_update_whitelistYcom.google.android.wearable.app,com.vinodkrishnan.testapp,com.google.android.apps.fitness*'
+finsky.wear.self_update_enabledtrue*"
+finsky.zapp.client.controller-*S
+finsky.zapp.clients<com.google.android.gms,zapp.demo,example.android.dvrdcl.demo*!
+finsky.zapp.rate_limit_ms1000*.
+'fitness.analytics_sampling_rate_percent0.1*Ä
+-fitness.default_sampling_rate_rules_blacklistOcom.google.step_count.cumulative,60000000:com.google.location.sample,7200000000*·
+0fitness.default_sampling_rate_rules_subscription¨com.google.activity.sample,60000000:com.google.activity.samples,60000000:com.google.location.sample,300000000:com.google.speed,300000000:com.google.distance.delta,300000000*ê
+5fitness.default_sampling_rate_rules_subscription_wear÷com.google.activity.sample,300000000:com.google.activity.samples,300000000:com.google.location.sample,7200000000:com.google.speed,7200000000:com.google.distance.delta,7200000000:com.google.heart_rate.bpm,1800000000*+
+#fitness.enable_calories_computationtrue*<
+4fitness.enable_distance_from_location_transformationtrue*-
+$fitness.enable_location_downsamplingfalse*&
+fitness.enable_pruned_distancetrue*-
+(fitness.fastest_location_interval_micros0**
+!fitness.fitness_server_timeout_ms12000*Ö
+/fitness.health_data_types_application_whitelist—com.andaman7.android,com.dexcom.cgm,com.dexcom.g6,com.dexcom.cgm.mgdl,com.dexcom.cgm.mmol,com.dexcom.cgm.region1.mgdl,com.dexcom.cgm.region1.mmol,com.dexcom.cgm.region2.mgdl,com.dexcom.cgm.region2.mmol,com.dexcom.cgm.region3.mgdl,com.dexcom.cgm.region4.mmol,com.dexcom.cgm.region5.mmol,com.dexcom.cgm.region6.mmol,com.dexcom.cgm.region7.mgdl,com.dexcom.cgm.region8.mgdl,com.dexcom.cgm.region9.mgdl,com.dexcom.cgm.region10.mgdl,com.dexcom.cgm.region11.mgdl,com.dexcom.cgm.region11.mmol,com.dexcom.cgm.region12.mgdl,com.dexcom.cgm.region13.mgdl,com.dexcom.cgm.region14.mmol,com.dexcom.cgm.region15.mmol,nl.appyhapps.healthsync,uk.ac.ox.ibme.testAPP,uk.ac.ox.ibme.smwt,uk.ac.ox.ibme.gdm,com.lark.meadowlark2,com.clue.android*'
+!fitness.max_cumulative_batch_secs30*1
+'fitness.max_data_points_per_data_source100000*.
+'fitness.max_location_accuracy_threshold150*%
+fitness.max_valid_count_delta5000*(
+ fitness.micro.show_fitness_promotrue*(
+ fitness.min_running_stride_ratio0.66*(
+ fitness.min_walking_stride_ratio0.66*'
+fitness.prefer_local_step_deltatrue**
+"fitness.prune_still_on_bike_statestrue*1
+)fitness.read_behind_secs_local_step_delta3600*:
+2fitness.restrict_read_behind_local_step_cumulativetrue*#
+fitness.service_core_pool_size3*#
+fitness.service_max_pool_size10*$
+fitness.service_max_queue_size50*ı
+fitness.shareable_data_partners—com.nike.NIKEFUEL=com.nike.plusgps,com.nike.fb,com.nike.plusgps.debug|com.adidas.jump.height=com.adidas.micoach.x_cell|com.adidas.hustle=com.adidas.micoach.x_cell|com.adidas.quickness=com.adidas.micoach.x_cell*ô
+fitness.shareable_data_schemaxcom.nike.NIKEFUEL=NIKEFUEL-1|com.adidas.jump.height=height-2|com.adidas.hustle=hustle-2|com.adidas.quickness=quickness-2*…
+fitness.shareable_read_scopesßcom.nike.NIKEFUEL=https://www.googleapis.com/auth/fitness.activity.read|com.adidas.jump.height=https://www.googleapis.com/auth/fitness.activity.read|com.adidas.hustle=https://www.googleapis.com/auth/fitness.activity.read|com.adidas.quickness=https://www.googleapis.com/auth/fitness.activity.read*”
+#fitness.shareable_read_write_scopes´com.nike.NIKEFUEL=https://www.googleapis.com/auth/fitness.activity.write|com.adidas.jump.height=https://www.googleapis.com/auth/fitness.activity.write|com.adidas.hustle=https://www.googleapis.com/auth/fitness.activity.write|com.adidas.quickness=https://www.googleapis.com/auth/fitness.activity.write*)
+#fitness.speed_smoothing_window_secs30*#
+fitness.stride_running_a0-0.613*"
+fitness.stride_running_a10.297*!
+fitness.stride_running_a20.25*"
+fitness.sync_timeout_seconds60*!
+fitness.upload_sync_limit2000*!
+fitness.wearable_sync_acktrue*%
+fmradio:min_agsa_version	500611956*!
+fmradio:music_search_enabled1*%
+gads:enable_content_fetchingfalse*)
+gads:js_flags:update_interval14400000*
+games.cache_enabledfalse*
+games.enable_metagametrue*%
+games.google_settings_enabledtrue* 
+games.play_now_card_density1*
+games.play_now_ordering5*
+games.player_id_prefix *&
+!games.rtmp_max_reconnect_attempts3*%
+games.sign_leaderboard_scores1.00*'
+games.use_in_app_purchase_flowfalse*$
+games.use_mendel_experimentstrue*$
+games.use_plus_upsell_dialogtrue*)
+!games.use_server_game_theme_colortrue*4
+ gmail-ads-play-store-app-detailsmarket://details*"
+gmail-cal-promo-event-texttrue* 
+gmail-cal-promo-event-title1*!
+gmail-cal-promo-flight-title1* 
+gmail-cal-promo-hotel-title1*
+gmail-cal-promo-meal-title0*+
+$gmail-xplat-tracing-sampling-btd-exp500*
+gmail_css_style_supporttrue*"
+gmail_discard_error_uphill_op1*&
+!gmail_discard_error_uphill_op_new1*!
+gmail_enable_block_sendertrue*!
+gmail_enable_custom_tabsfalse*$
+gmail_enable_custom_tabs_newtrue*#
+gmail_g6y_in_account_setupfalse*v
+gmail_gview_urlchttps://drive.google.com/viewerng/viewer?embedded=true&a=v&pid=gmail&user=%s&thid=%s&attid=%s&mt=%s*
+
+gmail_host	gmail.com*'
+gmail_max_preview_image_size2097152*
+gmail_num_retry_uphill_op45*!
+gmail_use_multipart_protobuf1*
+gmail_use_sennatrue*)
+gmail_wait_time_retry_uphill_op129600*8
+/gms.udc.analytics_ctx_mgr_reg_tracking_fraction0.005*
+gms.udc.user_delegationtrue*ì
+%gms.udc.webview_url_whitelist_patternÈ(^https://history\.google(\.co(m?))?(\.\w{2})?/.*$)|(^https://www\.youtube(\.co(m?))?(\.\w{2})?/.*$)|(^https://m\.youtube(\.co(m?))?(\.\w{2})?/.*$)|(^https://accounts\.youtube(\.co(m?))?(\.\w{2})?/.*$)|(^https://accounts\.google(\.co(m?))?(\.\w{2})?/.*$)|(^https://support\.google(\.co(m?))?(\.\w{2})?/.*$)|(^https://myactivity\.google(\.co(m?))?(\.\w{2})?/.*$)*9
+0gms:cast:mdns_device_scanner:refresh_interval_ms10000*3
+*gms:chimera:enable_chimera_clearcut_loggerfalse**
+!gms:chimera:show_chimera_settingsfalse*&
+gms:feedback:ctl_message_popuptrue*E
+(gms:feedback:ctl_whitelist_package_namescom.google.,com.android.,*$
+gms:feedback:log_line_limit10000*O
+gms:playlog:service:sampling/LB_A:1/100,METALOG_COUNTERS:1/20,PHENOTYPE:1/10*;
+1gms:playlog:service:sampling_GMSCORE_API_COUNTERS1/1000*?
+5gms:playlog:service:sampling_GMSCORE_BACKEND_COUNTERS1/1000**
+!gms:playlog:service:sampling_LB_A1/100*5
+-gms:playlog:service:sampling_METALOG_COUNTERS1/20*.
+&gms:playlog:service:sampling_PHENOTYPE1/10*9
+.gms:playlog:uploader:max_log_events_size_bytes9437184*S
+*gms:playlog:uploader:oauth2_developer_code%https://www.googleapis.com/auth/cclog*6
+(gms:reminders:maxRefreshPlaceAliasMillis
+2592000000*6
+(gms:reminders:minRefreshPlaceAliasMillis
+2592000000*G
+;gms:wh:domainFilterUpdateChargingAndUnmeteredIntervalMillis28800000*:
+1gms:wh:nmr1EphemeralHashPrefixCalculationsEnabledfalse**
+!gms:wh:nmr1EphemeralRouterEnabledfalse*P
+0gms_disable:com.google.android.apps.walletnfcrel0:disabled,930007740:enabled*)
+!gms_icing_disable_contacts_corpustrue*"
+gms_min_reconnect_delay_short0*.
+&google_express_courierapp:crash_metrictrue*/
+'google_express_courierapp:memory_metrictrue*0
+(google_express_courierapp:network_metrictrue*.
+&google_express_courierapp:timer_metrictrue*,
+$google_express_storeoms:crash_metrictrue*-
+%google_express_storeoms:memory_metrictrue*.
+&google_express_storeoms:network_metrictrue*,
+$google_express_storeoms:timer_metrictrue*)
+!google_login_generic_auth_servicemail*ÿ
+google_login_public_keyºAAAAgMom/1a/v0lblO2Ubrt60J2gcuXSljGFQXgcyZWveWLEwo6prwgi3iJIZdodyhKZQrNWp5nKJ3srRXcUW+F1BD3baEVGcmEgqaLZUNBjm057pKRI16kB0YppeGx5qIQ5QjKzsR8ETQbKLNWgRY0QRNVz34kMJR3P/LgHax/6rmf5AAAAAwEAAQ==*{
+google_services:aheGoogle Apps||Allows applications to sign in to Google Apps using the account(s) stored on this phone.*ï
+google_services:doraemonyGoogle Catalogs||Allows applications to sign in to the Google Catalogs service using the account(s) stored on this phone.*Ü
+google_services:financekGoogle Finance||Allows applications to sign in to Google Finance using the account(s) stored on this phone.*ñ
+google_services:geowiki{Google Map maker||Allows applications to sign in to the Google Map maker service using the account(s) stored on this phone.*î
+google_services:goanna_mobilesGoogle Tasks||Allows applications to sign in to the Google Tasks service using the account(s) stored on this phone.*á
+google_services:grandcentralgGoogle Voice||Allows applications to sign in to Google Voice using the account(s) stored on this phone.*~
+google_services:localeGoogle Maps||Allows applications to sign in to Google Maps using the account(s) stored on this phone.*â
+google_services:notebookmGoogle Notebook||Allows applications to sign in to Google Notebook using the account(s) stored on this phone.*ä
+google_services:panoramiomPanoramio||Allows applications to sign in to the Panoramio service using the account(s) stored on this phone.*è
+google_services:readeruGoogle Reader||Allows applications to sign in to the Google Reader service using the account(s) stored on this phone.*√
+%google_services:speechpersonalizationôPersonalized Speech Recognition||Allows applications to sign in to the Personalized Speech Recognition service using the account(s) stored on this phone.*C
+:google_setup:phenotype:auth_early_update_from_zapp_enabledfalse*"
+google_wallet:issuer_whitelist *0
+#google_wallet:min_supported_version	930000000*'
+#google_wallet:payment_control_scope */
+'google_wallet:show_android_pay_settingstrue*+
+#google_wallet:show_get_the_app_linktrue*0
+#google_wallet:tp2_barcode_libraries	barhopper*2
+)google_wallet:tp2_developer_preview_errorfalse*2
+*googlevoice_enable_primes_crash_monitoringtrue*1
+)googlevoice_enable_primes_jank_monitoringtrue*3
++googlevoice_enable_primes_memory_monitoringtrue*4
+,googlevoice_enable_primes_network_monitoringtrue*4
+,googlevoice_enable_primes_package_monitoringtrue*2
+*googlevoice_enable_primes_timer_monitoringtrue**
+"googlevoice_enable_silent_feedbacktrue*T
+Kgooglevoice_googlevoice_hats_satisfaction_survey_sampling_rate_basis_points10000*3
++googlevoice_hats_enable_satisfaction_surveytrue*H
+?googlevoice_hats_satisfaction_survey_sampling_rate_basis_points10000*@
+;googlevoice_hats_time_after_update_satisfaction_survey_days5*2
+'gtalk_active_heartbeat_ping_interval_ms1680000*
+gtalk_auth_saslfalse*
+gtalk_binary_protocoltrue*'
+gtalk_clock_skew_threshold_ms300000*
+gtalk_compressfalse*w
+gtalk_flickr_photo_info_urlXhttp://api.flickr.com/services/rest/?method=flickr.photos.getinfo&photo_id=%s&api_key=%s*H
+gtalk_flickr_photo_url.http://farm%s.static.flickr.com/%s/%s_%s_m.jpg*)
+gtalk_max_server_heartbeat_time900000*2
+'gtalk_nosync_heartbeat_ping_interval_ms1680000*T
+gtalk_picasa_album_url:http://picasaweb.google.com/data/feed/api/user/%s/album/%s*
+	gtalk_ssltrue*0
+%gtalk_sync_heartbeat_ping_interval_ms1680000*<
+gtalk_terms_of_service_urlwww.google.com/talk/terms.html*"
+gtalk_url_scraping_for_jpgtrue*G
+gtalk_youtube_video_url,http://gdata.youtube.com/feeds/api/videos/%s*5
+,instantapps:reinstall_supervisor_on_link_tapfalse*:
+1instore.consumer.BleScanManager.enable_nearby_blefalse*7
+0instore.consumer.active_wifi_scan_backoff_factor1.0*.
+!instore.consumer.bad_version_soft	103003000*Z
+Rinstore.consumer.checkout.consumer_checkout_manager.allow_extra_scans_for_checkouttrue*f
+`instore.consumer.common.active_wifi_scan_helper.wait_for_active_wifi_scan_result_timeout_seconds15*5
+-instore.consumer.drive_thru_precision_enabledtrue*0
+(instore.consumer.geofenceCheckoutEnabledtrue*3
++instore.consumer.intelligentCheckoutEnabledtrue*X
+Oinstore.consumer.managers.error_notification_manager.enable_error_notificationsfalse*o
+`instore.consumer.managers.error_notification_manager.time_interval_for_error_notification_millis63072000000*D
+4instore.consumer.max_location_fix_elapsed_time_nanos300000000000*8
+/instore.consumer.max_location_fix_radius_meters100.0*.
+!instore.consumer.min_version_soft	103433076*>
+5instore.consumer.places_update_store_check_in_enabledfalse*[
+Sinstore.consumer.precision.advertiseConditionEvaluator.advertiseConfidenceThreshold0.66*X
+Qinstore.consumer.precision.advertiseConditionEvaluator.ble.advertiseRssiThreshold-80*`
+Xinstore.consumer.precision.advertiseConditionEvaluator.ble.confidenceBoostPerDbmIncrease0.04*i
+^instore.consumer.precision.advertiseConditionEvaluator.location.confidencePenaltyPerMeterError0.06667*\
+Tinstore.consumer.precision.advertiseConditionEvaluator.location.maxBearingDifference18.0*n
+finstore.consumer.precision.advertiseConditionEvaluator.locationWithBearingAdvertiseConfidenceThreshold0.66*W
+Oinstore.consumer.precision.alertConditionEvaluator.maxDistanceToPosInAlertState35.0*O
+Einstore.consumer.precision.proximityService.transactionIntervalMillis300000*k
+Minstore.consumer.semi_alert_state_comma_separated_lower_case_wifi_ap_prefixesmcdonald,chick-fil-a wi-fi*S
+Kinstore.consumer.service.ble_scan_service.enable_continuous_bluetooth_scanstrue*?
+6instore.consumer.start_wifi_scan_after_beacon_check_infalse*>
+5instore.consumer.start_wifi_scan_after_store_check_infalse*
+instore.consumer.tdtrue*
+instore.consumer.tytrue*O
+Ginstore.consumer.ui.checkin.MerchantBarHelper.show_non_directory_storestrue*û
+Ninstore.consumer.ui.consumer_receipt_detail_activity.merchant_id_to_survey_mapLMcDonald's,shswe24c7erauypk7x5ldwwrhq,Chick-fil-A,xotg34ws73ofaqq4g5id4ry7nm*f
+^instore.consumer.ui.instrument.listitems.instrument_list_item_factory.enable_customer_selectortrue*0
+'instore.request_location_timeout_millis60000*Œ
+'latin_ime_voice_input_supported_locales¢af af_NA af_ZA ar ar_AE ar_BH ar_DZ ar_EG ar_IL ar_JO ar_KW ar_LB ar_LY ar_MA ar_OM ar_PS ar_QA ar_SA ar_TN bg bg_BG ca ca_AD ca_ES cs cs_CZ da da_DK de de_AT de_CH de_DE de_LI el el_GR en en_AU en_CA en_GB en_IE en_IN en_NZ en_SG en_UK en_US en_ZA es es_AR es_BO es_CL es_CO es_CR es_DO es_EC es_ES es_GT es_HN es_MX es_NI es_PA es_PE es_PR es_PY es_SV es_US es_UY es_VE fa fa_IR fi fi_FI fil fil_PH fr fr_BE fr_CA fr_CH fr_FR gl gl_ES he he_IL hi hi_IN hr hr_HR hu hu_HU id id_ID in in_ID is is_IS it it_CH it_IT iw iw_IL ja ja_JP ko ko_KR lt lt_LT ms ms_BN ms_MY ms_SG nb nb_NO nl nl_BE nl_NL no no_NO pl pl_PL pt pt_AO pt_BR pt_PT ro ro_MD ro_RO ru ru_RU ru_UA sk sk_SK sl sl_SI sr sr_BA sr_ME sr_RS sr_XK sv sv_FI sv_SE th th_TH tr tr_TR uk uk_UA vi vi_VN zh zh_CN zh_HK zh_MO zh_SG zh_TW zu zu_ZA*#
+location:collect_gps_statustrue*-
+%location:enable_gmm_bluetooth_metricstrue*+
+#location:enable_gmm_history_trackertrue*,
+#location:enable_hardware_geofencingfalse*0
+)location:flp_battery_threshold_full_power2.0*$
+location:use_gps_pdr_in_flpfalse*/
+'location_sharing.enable_account_spinnertrue*,
+&maps:shgn_audio_modem_broadcast_volume11*
+maps_enable_friend_finder1*
+maps_enable_navigation1*
+market_force_checkin1*"
+mms_maximum_message_size307200*J
+mms_x_wap_profile_url1http://www.google.com/oha/rdf/ua-profile-kila.xml*9
+mobile_transcoder_url http://www.google.com/gwt/n?u=%s*$
+moviemaker:aam_renderer_version5*&
+moviemaker:enable_local_musicFALSE*'
+music_autocache_opt_in_defaultfalse* 
+music_cast_v2_app_id2872939A*)
+!music_enable_chromecast_wake_locktrue**
+"music_enable_oauth2_authenticationtrue*"
+music_enable_play_loggingfalse*8
+0music_enable_situations_for_leanback_environmenttrue*'
+music_enable_track_stats_upsynctrue*"
+music_enable_tracks_upsynctrue*+
+#music_enable_tracks_upsync_deletiontrue*"
+music_playlist_prefetch_count3* 
+music_show_coupon_statustrue*#
+music_show_radio_animationfalse*"
+music_sync_invalid_accounttrue*)
+!music_unaccepted_user_reduce_synctrue*ﬂ
+nearbydirect:debug_whitelistæcom.google.android.apps.testing.devicewhisperer.deviceagents.copresence:EDA6413C3E3A95492114FE07CD953AD897E40D1A,com.google.android.apps.testing.devicewhisperer.deviceagents.nearby:EDA6413C3E3A95492114FE07CD953AD897E40D1A,com.google.location.nearby.direct.app:EDA6413C3E3A95492114FE07CD953AD897E40D1A,com.google.location.nearby.direct.tools.bridge:EDA6413C3E3A95492114FE07CD953AD897E40D1A,com.google.location.nearby.apps.sharing:EDA6413C3E3A95492114FE07CD953AD897E40D1A,com.google.location.nearby.apps.sharing:FF51F3EC6269A69358154827CE328FFEC2FF12C1,com.google.android.apps.nbu.files:EDA6413C3E3A95492114FE07CD953AD897E40D1A,com.google.android.apps.nbu.curator:EDA6413C3E3A95492114FE07CD953AD897E40D1A*6
+.newsstand:background_auth_success_notificationtrue*A
+9newsstand:on_boot_notification_registration_existing_usertrue*N
+Fnewsstand:on_boot_notification_registration_existing_user_online_checktrue*
+ocr.cc_ocr_enabledfalse*,
+#ocr.perform_cc_exp_date_recognitionfalse*(
+ocr.perform_cc_name_recognitionfalse*7
+.ocr.perform_nonstandard_cc_expdate_recognitionfalse*/
+&ocr.perform_nonstandard_cc_recognitionfalse*6
+-ocr.v5plus_nonstandard_cc_expdate_recognitionfalse*.
+%ocr.v5plus_nonstandard_cc_recognitionfalse*+
+parental_control_timeout_in_ms	604800000*+
+!people.periodic_sync_interval_sec172800*
+perform_market_checkintrue*#
+photos:enable_backup_promofalse*.
+%photos:enable_device_management_promofalse*"
+photos:short_onboardingDefault*%
+play.playlog_enabled_sourcesBOOKS*7
+/playconsole.are_android_metrics_crashes_enabledtrue*;
+6playconsole.enable_ab_experiment_notifications_echidna3**
+"playconsole.enable_app_list_searchtrue*3
++playconsole.enable_canary_fraction_increasetrue*-
+%playconsole.enable_canary_halt_resumetrue**
+%playconsole.enable_custom_date_picker3*-
+%playconsole.enable_google_mobile_helptrue*-
+%playconsole.enable_guns_notificationstrue*4
+,playconsole.enable_guns_review_notificationstrue*,
+'playconsole.enable_hourly_installs_only2*&
+!playconsole.enable_lifetime_stats3*.
+&playconsole.enable_listing_experimentstrue*3
+*playconsole.enable_metered_background_syncfalse*3
++playconsole.enable_new_review_notificationstrue*(
+#playconsole.enable_order_management3*-
+$playconsole.enable_realtime_installsfalse*'
+playconsole.enable_revenue_cardtrue*)
+!playconsole.enable_review_sharingtrue*(
+#playconsole.enable_split_diagnostic3*-
+(playconsole.is_feature_analytics_enabled3*4
+/playconsole.killswitch_kill_apk_versions_before2*<
+/playconsole.killswitch_warn_apk_versions_before	500016900*
+playconsole.metrics_refurb3*
+playconsole.release_tracks3*'
+"playconsole.selectable_data_points3*
+playconsole.stats_diff3*(
+qsb:has_external_dasher_accountfalse*1
+reminder.server_api_path/reminders/v1internal*(
+search_allow_voice_search_hintsfalse*V
+search_voice_app_install_uri6market://search?q=pname:com.google.android.voicesearch*’
+.secure:latin_ime_voice_input_supported_locales¢af af_NA af_ZA ar ar_AE ar_BH ar_DZ ar_EG ar_IL ar_JO ar_KW ar_LB ar_LY ar_MA ar_OM ar_PS ar_QA ar_SA ar_TN bg bg_BG ca ca_AD ca_ES cs cs_CZ da da_DK de de_AT de_CH de_DE de_LI el el_GR en en_AU en_CA en_GB en_IE en_IN en_NZ en_SG en_UK en_US en_ZA es es_AR es_BO es_CL es_CO es_CR es_DO es_EC es_ES es_GT es_HN es_MX es_NI es_PA es_PE es_PR es_PY es_SV es_US es_UY es_VE fa fa_IR fi fi_FI fil fil_PH fr fr_BE fr_CA fr_CH fr_FR gl gl_ES he he_IL hi hi_IN hr hr_HR hu hu_HU id id_ID in in_ID is is_IS it it_CH it_IT iw iw_IL ja ja_JP ko ko_KR lt lt_LT ms ms_BN ms_MY ms_SG nb nb_NO nl nl_BE nl_NL no no_NO pl pl_PL pt pt_AO pt_BR pt_PT ro ro_MD ro_RO ru ru_RU ru_UA sk sk_SK sl sl_SI sr sr_BA sr_ME sr_RS sr_XK sv sv_FI sv_SE th th_TH tr tr_TR uk uk_UA vi vi_VN zh zh_CN zh_HK zh_MO zh_SG zh_TW zu zu_ZA* 
+secure:ssl_session_cachefile* 
+secure:verifier_timeout17000*g
+ settings_contributors_pretty_urlChttps://www.google.com/mobile/android/basic/phone-contributors.html*`
+settings_contributors_urlChttps://www.google.com/mobile/android/basic/phone-contributors.html*W
+settings_tos_pretty_url<https://www.google.com/mobile/android/basic/phone-legal.html*P
+settings_tos_url<https://www.google.com/mobile/android/basic/phone-legal.html*
+show_security_settingsfalse*
+society:flogger_enabledtrue* 
+society:min_logging_level900*
+ssl_session_cachefile*4
+,storagemanagergoogle:photos_deletion_enabledtrue*
+system:alarm_alert_set1*"
+system:notification_sound_set1*
+system:ringtone_set1*,
+&tachyon_audio_diagnostic_duration_secs15*3
+-tachyon_call_rating_policy_call_duration_secs15*5
+,tachyon_call_rating_policy_min_interval_secs86400**
+!tachyon_clearcut_logging_qos_highfalse*
+tachyon_disable_cronettrue*
+tachyon_disable_quictrue*
+tachyon_egl14_disabledtrue*&
+tachyon_max_camera_video
+640x480x30*(
+tachyon_max_out_nofx_video
+640x480x30*0
+%tachyon_phone_number_whitelist_prefix+199999*%
+tachyon_platform_agc_disabledtrue*"
+tachyon_primes_track_crashtrue*#
+tachyon_primes_track_memorytrue*$
+tachyon_primes_track_networktrue*$
+tachyon_primes_track_packagetrue*"
+tachyon_primes_track_timertrue*,
+%tachyon_silent_feedback_throttle_rate1.0*-
+$tachyon_stats_report_interval_millis10000*(
+ tachyon_texture_capture_disabledtrue**
+"tachyon_wait_camera_close_on_pausetrue*'
+#tvlauncher:blacklisted_app_packages *k
+#tvlauncher:blacklisted_from_removalDcom.netflix.ninja,com.google.android.videos,com.google.android.music*:
+%tvlauncher:blacklisted_from_watchlistcom.netflix.ninja* 
+-tvlauncher:notifications_whitelisted_packagesòandroid,com.android.shell,com.google.android.katniss,com.google.android.permissioncontroller,com.google.android.tv.remote.service,com.google.android.tvlauncher,com.google.android.tvrecommendations,com.android.vending,com.android.traceur,com.google.android.apps.nbu.smartconnect.tv*E
+?tvrecommendations:connectivity_listener_disconnect_update_delay30*9
+3tvrecommendations:connectivity_listener_start_delay30*
+uncertified_status4*<
+'update_clearcut_log_enabled_event_types1,2,3,5,6,7,10,11*c
+*update_clearcut_log_enabled_ui_event_codes51,2,8,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26*8
+/update_download_pause_resume_by_service_allowedfalse* 
+update_download_prefer_data0* 
+update_download_rate_limits0*+
+&update_download_redownload_retry_limit3*7
+*update_installation_install_tonight_window	0200-0400*"
+update_notify_scheduled_delay0*'
+"update_notify_security_level_delay0**
+%update_notify_wifi_disconnected_delay0*/
+&update_pause_resume_by_service_allowedfalse*)
+update_status_log_max_delay_sec129600*(
+update_status_log_min_delay_sec86400*0
+"update_ui_notify_approval_strategy
+1,43200000*7
+)update_ui_notify_device_not_idle_strategy
+1,43200000*:
+,update_ui_notify_insufficient_space_strategy
+1,43200000*3
+%update_ui_notify_low_battery_strategy
+1,43200000*1
+#update_ui_notify_scheduled_strategy
+1,43200000*9
++update_ui_notify_wifi_disconnected_strategy
+1,43200000*H
+url:block_crash_reports-http://android.clients.google.com/crash block*Ñ
+url:bookmarks_sync_https_proxybhttps://clients4.google.com/chrome-sync rewrite https://android.clients.google.com/proxy/bookmarks*x
+url:calendar_sync_http_proxyXhttp://www.google.com/calendar rewrite https://android.clients.google.com/proxy/calendar*Ö
+"url:calendar_sync_http_proxy_gdata_http://www.google.com/calendar/feeds rewrite https://android.clients.google.com/proxy/calendar2*z
+url:calendar_sync_https_proxyYhttps://www.google.com/calendar rewrite https://android.clients.google.com/proxy/calendar*á
+#url:calendar_sync_https_proxy_gdata`https://www.google.com/calendar/feeds rewrite https://android.clients.google.com/proxy/calendar2*x
+url:contacts_sync_http_proxyXhttp://www.google.com/m8/feeds rewrite https://android.clients.google.com/proxy/contacts*z
+url:contacts_sync_https_proxyYhttps://www.google.com/m8/feeds rewrite https://android.clients.google.com/proxy/contacts*i
+url:gmail_sync_http_proxyLhttp://mail.google.com rewrite http://android.clients.google.com/proxy/gmail*l
+url:gmail_sync_https_proxyNhttps://mail.google.com rewrite https://android.clients.google.com/proxy/gmail*f
+url:google_location_serverHhttp://www.google.com/loc/m/api rewrite https://www.google.com/loc/m/api*]
+url:guc_0_urlLhttp://lh0.googleusercontent.com/ rewrite https://lh0.googleusercontent.com/*]
+url:guc_1_urlLhttp://lh1.googleusercontent.com/ rewrite https://lh1.googleusercontent.com/*]
+url:guc_2_urlLhttp://lh2.googleusercontent.com/ rewrite https://lh2.googleusercontent.com/*]
+url:guc_3_urlLhttp://lh3.googleusercontent.com/ rewrite https://lh3.googleusercontent.com/*]
+url:guc_4_urlLhttp://lh4.googleusercontent.com/ rewrite https://lh4.googleusercontent.com/*]
+url:guc_5_urlLhttp://lh5.googleusercontent.com/ rewrite https://lh5.googleusercontent.com/*]
+url:guc_6_urlLhttp://lh6.googleusercontent.com/ rewrite https://lh6.googleusercontent.com/*]
+url:guc_7_urlLhttp://lh7.googleusercontent.com/ rewrite https://lh7.googleusercontent.com/*]
+url:guc_8_urlLhttp://lh8.googleusercontent.com/ rewrite https://lh8.googleusercontent.com/*]
+url:guc_9_urlLhttp://lh9.googleusercontent.com/ rewrite https://lh9.googleusercontent.com/*k
+url:play.playlog_logShttps://android.clients.google.com/play/log rewrite https://play.googleapis.com/log*Å
+&url:redirect_youtube_from_sandbox_ytbsWhttp://jmt17.google.com/proxy/ytbs rewrite http://android.clients.google.com/proxy/ytbs*Å
+&url:redirect_youtube_from_sandbox_ytbtWhttp://jmt17.google.com/proxy/ytbt rewrite http://android.clients.google.com/proxy/ytbt*ï
+#url:vending_machine_billing_ssl_urlnhttps://android.clients.google.com/vending/billing/ rewrite https://android.clients.google.com/market/billing/*å
+url:vending_machine_efe_urlmhttps://android_efe.clients.google.com/vending/api/efe rewrite https://android.clients.google.com/market/efe/*}
+url:vending_machine_ssl_url^https://android.clients.google.com/vending/ rewrite https://android.clients.google.com/market/*w
+url:vending_machine_url\http://android.clients.google.com/vending/ rewrite http://android.clients.google.com/market/*£
+url:verify_apps_url_rewriteÉhttps://safebrowsing.google.com/safebrowsing/clientreport rewrite https://android-safebrowsing.google.com/safebrowsing/clientreport*x
+url:videos_licfhttps://www.youtube.com/api/license/wv/fetch rewrite https://play.google.com/video/license/GetEMMs.cgi*z
+ url:videos_search_suggestion_urlVhttps://market.android.com/suggest/ rewrite https://play.google.com/video/avi/suggest/*
+use_msisdn_tokenfalse*0
+(user_location_reporting:is_supported_geotrue*&
+vending_carrier_cred_buf_ms1800000*)
+vending_carrier_ref_freq_ms
+1209600000*$
+vending_dcb_poll_timeout_ms20000*
+vending_hide_ad_prefsfalse*$
+vending_hide_content_ratingfalse*$
+vending_hide_warning_messagetrue*(
+ vending_require_sim_for_purchasetrue*.
+)vending_show_similar_tab_in_app_info_page1*@
+vending_support_url)https://support.google.com/androidmarket/*&
+vending_sync_frequency_ms	172800000*X
+vending_tos_urlEhttps://www.google.com/intl/%locale%/mobile/android/market-terms.html*
+vending_tos_version1.0.0*(
+vending_use_checkout_qa_servicefalse* 
+verifier_upload_enabledfalse*
+videos:allow_pip_modetrue*!
+videos:analytics_enabledfalse*.
+&videos:atv_choosies_enabled_inside_outtrue*œ
+*videos:atv_choosies_redemption_blacklisted†XBR-100Z9D,XBR-75Z9D,XBR-65Z9D,XBR-75X940D,XBR-65X930D,XBR-65X935D,XBR-65X937D,XBR-55X930D,XBR-85X850D,XBR-85X855D,XBR-85X857D,XBR-75X850D,XBR-75X855D,XBR-75X857D,XBR-65X850D,XBR-65X855D,XBR-65X857D,XBR-55X850D,XBR-55X855D,XBR-55X857D,XBR-49X830D,XBR-49X835D,XBR-49X837D,XBR-43X830D,XBR-49X800D,XBR-43X800D,XBR-43X805D,XBR-65X750D,XBR-65X759D,XBR-65X755D,XBR-65X757D,XBR-55X700D,XBR-55X709D,XBR-55X705D,KD-55X7005D,XBR-55X707D,XBR-49X700D,XBR-49X709D,XBR-49X705D,KD-49X7005D,XBR-49X707D,KD-100ZD9,KD-75ZD9,KD-65ZD9,KD-75XD9405,KD-65XD9305,KD-55XD9305,KD-65SD8505,KD-55SD8505,FW-85XD8501,KD-85XD8505,FW-75XD8501,KD-75XD8505,FW-65XD8501,KD-65XD8505,KD-65XD8577,KD-65XD8599,FW-55XD8501,KD-55XD8505,KD-55XD8577,KD-55XD8588,KD-55XD8599,KD-49XD8305,KD-43XD8305,KD-55XD8005,FW-49XD8001,KD-49XD8005,KD-49XD8077,KD-49XD8088,KD-49XD8099,FW-43XD8001,KD-43XD8005,KD-43XD8077,KD-43XD8088,KD-43XD8099,KD-55SD8005,KD-50SD8005,KD-65XD7505,KD-65XD7504,KD-55XD7005,KD-55XD7004,KD-49XD7005,KD-49XD7004,KD-100Z9D,KJ-100Z9D,KD-75Z9D,KJ-75Z9D,KD-65Z9D,KJ-65Z9D,KD-75X9400D,KJ-75X9400D,KD-65X9300D,KJ-65X9300D,KD-55X9300D,KJ-55X9300D,KD-65S8500D,KD-55S8500D,KD-85X8500D,KD-75X8500D,KD-65X8500D,KD-65X8566D,KJ-65X8500D,KD-55X8500D,KD-55X8505D,FW-55X8501D,KD-55X8566D,KJ-55X8500D,KJ-49X8300D,KJ-43X8300D,KD-49X8000D,KD-49X8066D,KJ-49X8000D,KD-43X8000D,KJ-43X8000D,KD-55S8000D,KD-50S8000D,KD-65X7500D,KD-65X7566D,KD-55X7000D,FW-55X7001D,KD-55X7066D,KJ-55X7000D,KD-49X7000D,FW-49X7001D,KD-49X7066D,KJ-49X7000D,XBR-55A8G,KD-55A8G,KJ-55A8G,KD-55AG8,XBR-65A8G,KD-65A8G,KJ-65A8G,KD-65AG8,XBR-43X800G,XBR-49X800G,XBR-49X805G,XBR-49X807G,XBR-55X800G,XBR-55X805G,XBR-55X807G,XBR-65X800G,XBR-65X805G,XBR-65X807G,XBR-75X800G,XBR-75X805G,XBR-75X807G,KD-43X8000G,KD-49X8000G,KD-55X8000G,KD-65X8000G,KD-75X8000G,KD-43XG8096,KD-49XG8096,KD-55XG8096,KD-65XG8096,KD-75XG8096,KJ-43X8000G,KJ-49X8000G,KJ-55X8000G,KJ-65X8000G,KD-55X8077G,KD-65X8077G,KD-43XG8196,KD-49XG8196,KD-55XG8196,KD-65XG8196*-
+%videos:bundle_details_page_enabled_vstrue*,
+#videos:cast_icon_management_enabledfalse*
+videos:cast_v2_enabledtrue*&
+videos:coupon_welcome_enabledfalse*1
+)videos:enable_4k_upgrade_notifications_vstrue*1
+videos:enable_ceres_force_on_vs41400220+:true*=
+5videos:enable_details_discount_annotation_force_on_vstrue*C
+;videos:enable_details_similar_assets_pagination_force_on_vstrue*.
+videos:enable_k2_force_on_vs41400220+:true*H
+6videos:enable_nur_discovery_guide_internal_force_on_vs41400220+:true*I
+7videos:enable_nur_discovery_search_internal_force_on_vs41400220+:true*A
+/videos:enable_nur_manifest_internal_force_on_vs41200070+:true*A
+/videos:enable_nur_metadata_internal_force_on_vs41400220+:true*F
+4videos:enable_playable_sequence_internal_force_on_vs41200070+:true*2
+ videos:enable_replay_playback_vs41400220+:true*/
+'videos:enable_replay_polish_force_on_vstrue*?
+7videos:exo_v2_abr_block_fixed_track_selection_bandwidthtrue*8
+/videos:exo_v2_abr_enable_parallel_adaptation_vsfalse*(
+ videos:exo_v2_bandwidth_fraction0.70*)
+"videos:exo_v2_buffer_chunk_count_n585*-
+videos:exo_v2_high_watermark_ms
+2147483647*$
+videos:exo_v2_init_bitrate_algo2*,
+videos:exo_v2_low_watermark_ms
+2147483647*;
+2videos:exo_v2_prioritize_time_over_size_thresholdsfalse*;
+3videos:exo_v2_reset_bw_meter_on_network_type_changetrue*.
+&videos:exo_v2_use_default_load_controltrue*)
+!videos:exo_v2_use_global_bw_metertrue*3
+!videos:exo_v2_use_qoe_listener_vs41400000+:true*1
+)videos:exo_v2_use_video_track_selection_xtrue*(
+ videos:exoplayer_v2_enabled_trontrue*)
+videos:fallbackDrmErrorCodes	44,49,108*%
+videos:family_sharing_enabledtrue*)
+!videos:free_movie_welcome_enabledtrue*8
+&videos:guide_distributors_countries_vsUS;41400000-:_*+
+#videos:horizontal_scrolling_enabledtrue*X
+videos:how_to_play_support_uri6https://support.google.com/googleplay/?p=ways_to_watch*4
+-videos:in_app_drm_player_streaming_height_cap719*(
+videos:knowledge_enabled_phonesfalse*)
+ videos:knowledge_enabled_tabletsfalse*!
+videos:latest_version31208000*)
+!videos:library_management_enabledtrue*
+videos:minimum_version26000*Ç
+videos:movie_vertical_countriesﬁAU,BE,BR,CA,CH,FR,DE,IN,IT,MX,JP,RU,KR,ES,GB,US,BW,TZ,ZW,HK,NP,LK,AG,BZ,JM,TT,FJ,NZ,PG,AO,AW,BJ,BO,BF,KH,CV,CL,CO,CR,CI,DK,DO,EC,SV,FI,GA,GT,HT,HN,LU,ML,MU,NA,NL,NI,NE,NO,PA,PY,PE,PH,PT,RW,SN,SE,TG,UG,UY,VE,ZM,CZ,GR,TH,PL,AR,AL,AM,AZ,BY,HR,EE,KZ,KG,LA,LV,LT,MD,SK,TJ,TM,UZ,IE,AT,BA,CY,HU,IS,MK,MT,SI,TW,UA,SG,ID,MY,ZA,TR,SA,AU,VN,KW,QA,EG,LB,OM,BH,JO*&
+videos:movies_vertical_enabledtrue*
+videos:multi_audio_rtrue*+
+#videos:oauth_token_for_cast_enabledtrue*#
+videos:onboarding_feedbackfalse*D
+videos:play_analytics_server$https://play.googleapis.com/play/log*1
+)videos:prism_audio_preferences_enabled_vstrue*=
+4videos:prompt_unpin_for_remote_play_of_pinned_rentalfalse**
+"videos:qoe_offline_logging_enabledtrue*"
+videos:replay_disabled_vsfalse*<
+videos:show_vertical_countriesUS,GB,JP,AU,CA,DE,FR,AT,CH*(
+ videos:use_new_easy_auth_stringstrue*7
+videos:vr_countries US,GB,AU,CA,DE,KR,IN,IT,JP,FR,ES*+
+&voice_search:advanced_features_enabled1*…
+(voice_search:alternate_backoff_languagesúaf:af-ZA af-NA:af-ZA ar:ar-EG ar-BH:ar-QA ar-LY:ar-EG ar-OM:ar-AE ar-PS:ar-IL bg:bg-BG ca:ca-ES ca-AD:ca-ES cs:cs-CZ da:da-DK de:de-DE de-AT:de-DE de-CH:de-DE de-LI:de-DE el:el-GR en:en-001 en-IE:en-GB en-SG:en-001 en-UK:en-GB es:es-ES fa:fa-IR fi:fi-FI fil:fil-PH fr:fr-FR fr-BE:fr-FR fr-CA:fr-FR fr-CH:fr-FR gl:gl-ES he:iw-IL he-IL:iw-IL hi:hi-IN hr:hr-HR hr-BA:hr-HR hu:hu-HU id:id-ID in:id-ID in-ID:id-ID is:is-IS it:it-IT it-CH:it-IT iw:iw-IL ja:ja-JP ko:ko-KR lt:lt-LT ms:ms-MY ms-BN:ms-MY ms-SG:ms-MY nb:nb-NO nl:nl-NL nl-BE:nl-NL no:nb-NO no-NO:nb-NO pl:pl-PL pt:pt-BR pt-AO:pt-BR ro:ro-RO ro-MD:ro-RO ru:ru-RU ru-UA:ru-RU sk:sk-SK sl:sl-SI sr:sr-Cyrl-RS sr-BA:sr-Cyrl-RS sr-ME:sr-Cyrl-RS sr-RS:sr-Cyrl-RS sr-XK:sr-Cyrl-RS sv:sv-SE sv-FI:sv-SE th:th-TH tl:fil-PH tl-PH:fil-PH tr:tr-TR uk:uk-UA vi:vi-VN zh:cmn-Hans-CN zh-CN:cmn-Hans-CN zh-HK:yue-Hant-HK zh-MO:yue-Hant-HK zh-SG:cmn-Hans-CN zh-TW:cmn-Hant-TW zu:zu-ZA*+
+voice_search:de_DE_action_go_toAnzeigen*2
+%voice_search:de_DE_action_navigate_to	Ansteuern*:
+voice_search:de_DE_hint_go_towikipedia <b>anzeigen</b>*I
+#voice_search:de_DE_hint_navigate_to"brandenburger tor <b>ansteuern</b>*C
+ voice_search:de_DE_hint_send_sms<b>sms senden</b> an john smith*3
+*voice_search:extra_total_result_timeout_ms20000*I
+voice_search:help_video_url*http://www.youtube.com/watch?v=tPPcTN5sdX4*A
+voice_search:it_IT_hint_go_to <b>vai su</b> wikipedia</string>*E
+ voice_search:it_IT_hint_send_sms!<b>invia sms</b> a giulia bianchi*5
+(voice_search:it_IT_slot_send_sms_message	messaggio*F
+voice_search:mobile_privacy_url#https://www.google.com/privacy.html**
+&voice_search:personalization_countries *H
+)voice_search:personalization_v2_countries310 311 312 313 314 315 316*Ã
+voice_search:supported_actions©en-US:0,1,2,3,4 en-CA:0,1,2,3,4 en-GB:0,1,2,3,4 en-AU:0,1,2,3,4 en-NZ:0,1,2,3,4 en-IN:0,1,2,3,4 en-001:0,1,2,3,4 af-ZA: ar-DZ: ar-EG: ar-IL: ar-JO: ar-KW: ar-LB: ar-MA: ar-QA: ar-SA: ar-TN: ar-AE: bg-BG: ca-ES: cmn-Hans-CN: cmn-Hans-HK: cmn-Hant-TW: yue-Hant-HK: hr-BA: hr-HR: cs-CZ: da-DK: nl-NL: en-ZA: fi-FI: fil-PH: tl-PH: fr-FR: gl-ES: de-DE: el-GR: iw-IL: hi-IN: hu-HU: is-IS: id-ID: zu-ZA: it-IT: ja-JP: ko-KR: lt-LT: ms-MY: nb-NO: fa-IR: pl-PL: pt-BR: pt-PT: ro-RO: ru-RU: sr-Cyrl-RS: sk-SK: sl-SI: es-AR: es-BO: es-CL: es-CO: es-CR: es-DO: es-EC: es-SV: es-GT: es-HN: es-MX: es-NI: es-PA: es-PY: es-PE: es-PR: es-ES: es-US: es-UY: es-VE: sv-SE: th-TH: tr-TR: uk-UA: vi-VN:*∞
+3voice_search:supported_actions_new_numbering_scheme¯en-US:14,18,2,12,13,15,4,17,1,6,3 en-CA:2,3,4,1 en-GB:14,2,12,4,17,1,3 en-AU:2,3,4,1 en-NZ:2,3,4,1 en-IN:2,3,4,1 en-001:2,3,4,1 de-DE:14,2,12,4,17,1,3 es-ES:14,2,12,4,17,1,3 fr-FR:14,2,12,4,17,1,3 it-IT:14,2,12,4,17,1,3 af-ZA: ar-DZ: ar-EG: ar-IL: ar-JO: ar-KW: ar-LB: ar-MA: ar-QA: ar-SA: ar-TN: ar-AE: bg-BG: ca-ES: cmn-Hans-CN: cmn-Hans-HK: cmn-Hant-TW: yue-Hant-HK: hr-BA: hr-HR: cs-CZ: da-DK: nl-NL: en-ZA: fi-FI: fil-PH: tl-PH: gl-ES: el-GR: iw-IL: hi-IN: hu-HU: is-IS: id-ID: zu-ZA: ja-JP: ko-KR: lt-LT: ms-MY: nb-NO: fa-IR: pl-PL: pt-BR: pt-PT: ro-RO: ru-RU: sr-Cyrl-RS: sk-SK: sl-SI: es-AR: es-BO: es-CL: es-CO: es-CR: es-DO: es-EC: es-SV: es-GT: es-HN: es-MX: es-NI: es-PA: es-PY: es-PE: es-PR: es-US: es-UY: es-VE: sv-SE: th-TH: tr-TR: uk-UA: vi-VN:*∑
+ voice_search:supported_languagesíaf-ZA ar-DZ ar-EG ar-IL ar-JO ar-KW ar-LB ar-MA ar-QA ar-SA ar-TN ar-AE bg-BG ca-ES cmn-Hans-CN cmn-Hans-HK cmn-Hant-TW yue-Hant-HK hr-HR cs-CZ da-DK nl-NL en-AU en-CA en-IN en-NZ en-ZA en-GB en-US en-001 fil-PH fi-FI fr-FR gl-ES de-DE el-GR iw-IL hi-IN hu-HU is-IS id-ID zu-ZA it-IT ja-JP ko-KR lt-LT ms-MY nb-NO fa-IR pl-PL pt-BR pt-PT ro-RO ru-RU sr-Cyrl-RS sk-SK sl-SI es-AR es-BO es-CL es-CO es-CR es-DO es-EC es-SV es-GT es-HN es-MX es-NI es-PA es-PY es-PE es-PR es-ES es-US es-UY es-VE sv-SE th-TH tr-TR uk-UA vi-VN Euskara*x
+4voice_search:unsupported_action_market_url_set_alarm@http://www.google.com/support/mobile/bin/answer.py?answer=187559*O
+Gwallet.check_form_edit_text_should_hide_label_for_showing_layout_cutouttrue*6
+.wallet.clientlog.enable_fingerprint_auth_eventtrue*4
+,wallet.enable_alert_tooltip_dialog_gm2_styletrue*<
+4wallet.enable_show_info_message_image_in_simple_formtrue*6
+-wallet.populate_value_for_read_only_ui_fieldsfalse*-
+%wallet.request_context_include_apn_v3true*G
+?wallet.request_context_include_native_client_context_android_idtrue*
+wear-dialer:quick_replytrue*#
+wear-dialer:spam_detectionfalse*2
+)work:oob_config_phonesky_dpc_installationfalse**
+"work:oob_config_skip_zero_touch_uitrue*
+youtube:allow_debugtrue*"
+youtube:analytics_enabledfalse*&
+youtube:analytics_sample_ratio2000*$
+youtube:companion_ad_enabledtrue*
+youtube:csi_enabledtrue**
+!youtube:enable_distiller_commentsfalse*.
+%youtube:enable_distiller_comments_5_3false*8
+0youtube:enable_innertube_browse_for_default_feedtrue*'
+youtube:enable_innertube_guidefalse**
+"youtube:enable_innertube_guide_5_2true*+
+"youtube:enable_innertube_guide_5_3false*,
+$youtube:enable_innertube_guide_5_3_btrue*,
+#youtube:enable_innertube_watch_nextfalse*0
+'youtube:enable_innertube_watch_next_5_3false*
+youtube:enable_lacttrue*-
+%youtube:enable_trending_logged_out_v3true*(
+youtube:enable_universal_searchfalse*,
+#youtube:enable_universal_search_5_3false*'
+youtube:enable_what_to_watch_v3true*+
+#youtube:interaction_logging_enabledtrue* 
+youtube:is_bgol_enabledfalse*$
+youtube:is_bgol_enabled_5_3false*/
+&youtube:is_pudl_enabled_without_resyncfalse*3
+*youtube:is_pudl_enabled_without_resync_5_3false* 
+youtube:kids:csi_enabledtrue*$
+youtube:main:*:*:csi_enabledtrue*$
+youtube:main:*:*:enable_lacttrue*4
+,youtube:main:*:*:interaction_logging_enabledtrue*)
+ youtube:main:*:*:is_bgol_enabledfalse*,
+"youtube:main:cache_ms_param_millis240000* 
+youtube:main:csi_enabledtrue* 
+youtube:main:enable_lacttrue*2
+)youtube:main:failsafe_clear_cache_dogfoodfalse*7
+/youtube:main:failsafe_clear_cache_dogfood_13_02true*2
+)youtube:main:failsafe_clear_cache_releasefalse*7
+/youtube:main:failsafe_clear_cache_release_13_02true*@
+8youtube:main:failsafe_enable_gms_device_compliance_checktrue*7
+2youtube:main:failsafe_maxnumber_uncaught_exception3*8
+2youtube:main:failsafe_maxnumber_unfinished_startup-1**
+$youtube:main:failsafe_maxnumbercrash-1*0
+*youtube:main:failsafe_maxnumbercrash_12_15-1*0
+(youtube:main:interaction_logging_enabledtrue*%
+youtube:main:is_bgol_enabledfalse*$
+youtube:min_app_version	101756000*,
+'youtube:offline_dispatch_maximum_errors0*.
+%youtube:offline_http_report_cap_hours17520*7
+/youtube:tv:*:*:enable_mdx_https_browser_channeltrue*2
+*youtube:tv:*:*:interaction_logging_enabledtrue*-
+!youtube:tv:*:*:target_app_version10116000*+
+"youtube:tv:can_use_texture_surfacefalse*3
++youtube:tv:enable_mdx_https_browser_channeltrue*.
+&youtube:tv:interaction_logging_enabledtrue*)
+youtube:tv:target_app_version10116000*,
+$youtube:vmap_via_get_ad_tags_enabledtrue*!
+youtube:vss_sampling_weight10*
+youtube_use_proxytrue9Û≠€1Aû¨]˛#Ö)H ZoyTA8QGEwSoWgAc0G9iFQVc6MEX27hcb∑ABFEt1XUrNdeBg7pLh0JqfC38TahMshsWz41aboBti0ENmHBbfRcK8FkZmMPSXMaAIUxUKNoevPvbBZ-x1pErftstr19YTkra5AMVLwdfL_L7T65AZIBC7s9LtU8UayZqSHrxpbgxcmxCKdy4QE66Ef__J5wis5YhktYopgllQlsU-R5ki7zCPAE7Yre3W2yRwpUWIMjRfF30TmoRoqz22I3idIyW_LnNNO6sxVz5e-LPbB34QhOSne8BsSiABpRha_K16CgSVcjsTOf03HvykWYp6tSLo0yBIjxy3ul7fC1cM2AyLSYpzzuvrbmU19jLgeK5Kx4B5l5xvD8a4-VwgI6E2Kkidd4Da2VczZT7CdWXcAw-3mNb8jW1ZTvrFs8f_ZGvwaTqu_2ipxdKv4OQ1ljqB972EWHCZ6ilM9Wc-y39bZqO2fqmDc

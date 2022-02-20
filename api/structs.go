@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"strconv"
 	"time"
 )
@@ -26,13 +25,7 @@ type FireBaseAuthToken struct {
 	Expiration string `json:"expiresin"`
 }
 
-type NotifyInstallationResponse struct {
-	FID         string `json:"fid"`
-	AppID       string `json:"appId"`
-	AuthVersion string `json:"authVersion"`
-	SDKVersion  string `json:"sdkVersion"`
-}
-
+/*
 type FirebaseDevice struct {
 	Device *andutils.Device `json:"device"`
 	// Other Firebase related constants...
@@ -40,6 +33,18 @@ type FirebaseDevice struct {
 	AndroidCert    string `json:"android_certificate"`
 	GoogleAPIKey   string `json:"google_api_key"`
 	ProjectID      string `json:"project_id"`
+	GMPAppID       string `json:"gmp_app_id"`
+	// Also app specific constants but might be harder to find
+	AppNameHash         string `json:"app_name_hash"`
+	NotificationSender  string `json:"notification_sender"`
+	AppVersion          string `json:"app_version"`
+	AppVersionWithBuild string `json:"app_version_with_build"`
+	// Firebase Installation persistent variables
+	FirebaseInstallationID   string `json:"firebase_installation_id"`
+	FirebaseInstallationAuth *FireBaseAuthToken `json:"firebase_installation_auth"`
+	// Checkin related persistent variables
+	CheckinAndroidID     int64  `json:"checkin_android_id"`
+	CheckinSecurityToken uint64 `json:"checkin_security_token"`
 }
 
 type FirebaseAuthentication struct {
@@ -79,6 +84,7 @@ func (fa *FirebaseAuthentication) UnmarshalJSON(data []byte) error {
 	}
 	return err
 }
+*/
 
 type SecureTokenRefreshResponse struct {
 	AccessToken  string

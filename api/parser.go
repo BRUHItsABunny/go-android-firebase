@@ -89,3 +89,23 @@ func AuthResult(resp *http.Response) (*AuthResponse, error) {
 	}
 	return result, err
 }
+
+func CheckinResult(resp *http.Response) (*CheckinResponse, error) {
+	result := new(CheckinResponse)
+	responseBody, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err == nil {
+		err = result.UnmarshalVT(responseBody)
+	}
+	return result, err
+}
+
+func AndroidRegisterResult(resp *http.Response) (string, error) {
+	result := ""
+	responseBody, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err == nil {
+		result = string(responseBody[6:])
+	}
+	return result, err
+}

@@ -18,6 +18,10 @@ const (
 	EndpointSetAccountInto     = firebaseHost + "setAccountInfo"
 	EndpointRefreshSecureToken = "https://securetoken.googleapis.com/v1/token"
 	EndpointAuth               = "https://android.googleapis.com/auth"
+	EndpointAndroidCheckin     = "https://android.clients.google.com/checkin"
+	EndpointAndroidRegister    = "https://android.clients.google.com/c2dm/register3"
+	EndpointIOSCheckin         = "https://device-provisioning.googleapis.com/checkin"
+	EndpointIOSRegister        = "https://fcmtoken.googleapis.com/register"
 
 	HeaderKeyFireBaseClient  = "x-firebase-client"
 	HeaderKeyClientVersion   = "x-client-version"

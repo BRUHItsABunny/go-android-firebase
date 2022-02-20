@@ -18,13 +18,16 @@ func main() {
 	device := &go_android_firebase_api.FirebaseDevice{
 		Device: andutils.GetRandomDevice(),
 	}
+
+	appData := &go_android_firebase_api.FirebaseAppData{}
+
 	var (
 		email       = ""
 		masterToken = ""
 		data        = url.Values{}
 	)
 	ctx := context.Background()
-	client := go_android_firebase_client.NewFirebaseClient(hClient.Client, device)
+	client := go_android_firebase_client.NewFirebaseClient(hClient.Client, device, appData)
 
 	resp, err := client.Auth(ctx, data, email, masterToken)
 	if err == nil {

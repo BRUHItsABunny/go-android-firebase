@@ -68,7 +68,7 @@ func DefaultHeadersAndroidRegister(device *FirebaseDevice) http.Header {
 
 func FailSafeRandomAppFID() string {
 	// Mimic: https://firebase.google.com/docs/reference/android/com/google/firebase/installations/FirebaseInstallations#public-taskstring-getid
-	// url-safe ase84 of 128bit integer as bytes, our approach 16 random bytes
+	// url-safe base64 of 128bit integer as bytes, our approach 16 random bytes
 	fakeInt := make([]byte, 16)
 	rand.Read(fakeInt)
 	return base64.RawURLEncoding.EncodeToString(fakeInt)

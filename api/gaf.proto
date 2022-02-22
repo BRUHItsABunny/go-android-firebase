@@ -1,4 +1,5 @@
 syntax = "proto3";
+package android_firebase;
 option go_package = "github.com/BRUHItsABunny/go-android-firebase/api";
 
 import "google/protobuf/timestamp.proto";

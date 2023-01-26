@@ -12,9 +12,17 @@ message FirebaseAuthentication {
   string idToken = 4;
 }
 
+message FirebaseNotificationData {
+  string notificationToken = 1;
+  // The fields below are needed for Chromium push notification, not for native Android apps (typically)
+  bytes privateKey = 2;
+  bytes publicKey = 3;
+  bytes secret = 4;
+}
+
 message FirebaseInstallationData {
   string FirebaseInstallationID = 1;
-  string notificationToken = 2;
+  FirebaseNotificationData notificationData = 2;
   FirebaseAuthentication installationAuthentication = 3; // Upon NotifyInstall
   // TODO: Support more authentication?
 }
@@ -39,5 +47,8 @@ message FirebaseDevice {
   uint64 checkinSecurityToken = 3;
   // app Package ID : auth Obj
   map<string, FirebaseInstallationData> firebaseInstallations = 4;
+  string mTalkLastPersistentId = 5;
+  string firebaseClientVersion = 6;
+  string gmsVersion = 7;
 }
 

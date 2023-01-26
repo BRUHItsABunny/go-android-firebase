@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -10,54 +11,56 @@ import (
 	"time"
 )
 
+func parseJSON(resp *http.Response, result interface{}) error {
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("io.ReadAll: %w", err)
+	}
+	err = json.Unmarshal(responseBody, result)
+	if err != nil {
+		return fmt.Errorf("json.Unmarshal: %w", err)
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("resp.Body.Close: %w", err)
+	}
+	return nil
+}
+
 func NotifyInstallationResult(resp *http.Response) (*FireBaseInstallationResponse, error) {
 	result := new(FireBaseInstallationResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	if err == nil {
-		err = json.Unmarshal(responseBody, result)
-	}
+	err := parseJSON(resp, result)
 	return result, err
 }
 
 func VerifyPasswordResult(resp *http.Response) (*GoogleVerifyPasswordResponse, error) {
 	result := new(GoogleVerifyPasswordResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	if err == nil {
-		err = json.Unmarshal(responseBody, result)
-	}
+	err := parseJSON(resp, result)
 	return result, err
 }
 
 func SignUpNewUserResult(resp *http.Response) (*GoogleSignUpNewUserResponse, error) {
 	result := new(GoogleSignUpNewUserResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	if err == nil {
-		err = json.Unmarshal(responseBody, result)
-	}
+	err := parseJSON(resp, result)
 	return result, err
 }
 
 func SetAccountInfoResult(resp *http.Response) (*GoogleSetAccountInfoResponse, error) {
 	result := new(GoogleSetAccountInfoResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	if err == nil {
-		err = json.Unmarshal(responseBody, result)
-	}
+	err := parseJSON(resp, result)
 	return result, err
 }
 
 func RefreshSecureTokenResult(resp *http.Response) (*SecureTokenRefreshResponse, error) {
 	result := new(SecureTokenRefreshResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	if err == nil {
-		err = json.Unmarshal(responseBody, result)
-	}
+	err := parseJSON(resp, result)
 	return result, err
 }
 
 func AuthResult(resp *http.Response) (*AuthResponse, error) {
 	result := new(AuthResponse)
 	responseBody, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
 	if err == nil {
 		var timeStamp int64
 		for _, entryBytes := range bytes.Split(responseBody, []byte("\n")) {

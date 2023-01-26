@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-func NewFirebaseClient(hClient *http.Client, device *api.FirebaseDevice, appData *api.FirebaseAppData) *client.FireBaseClient {
-	return client.NewFirebaseClient(hClient, device, appData)
+func NewFirebaseClient(hClient *http.Client, device *api.FirebaseDevice) *client.FireBaseClient {
+	return client.NewFirebaseClient(hClient, device)
 }
 
 func RandomAppFID() string {

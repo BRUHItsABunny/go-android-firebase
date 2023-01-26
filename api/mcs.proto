@@ -10,6 +10,16 @@ syntax = "proto2";
 option java_package = "org.microg.gms.gcm.mcs";
 option go_package = "github.com/BRUHItsABunny/go-android-firebase/api";
 
+enum MCSTag {
+   MCS_HEARTBEAT_PING_TAG = 0;
+   MCS_HEARTBEAT_ACK_TAG = 1;
+   MCS_LOGIN_REQUEST_TAG = 2;
+   MCS_LOGIN_RESPONSE_TAG = 3;
+   MCS_CLOSE_TAG = 4;
+   MCS_IQ_STANZA_TAG = 7;
+   MCS_DATA_MESSAGE_STANZA_TAG = 8;
+}
+
 /*
    Common fields/comments:
 

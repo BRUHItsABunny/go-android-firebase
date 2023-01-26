@@ -37,6 +37,9 @@ const (
 
 	HeaderValueMIMEJSON      = "application/json"
 	HeaderValueClientVersion = "Android/Fallback/X20000001/FirebaseCore-Android"
+
+	MTalkHost = "mtalk.google.com"
+	MTalkPort = "5228"
 )
 
 var (

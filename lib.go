@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-func NewFirebaseClient(hClient *http.Client, device *api.FirebaseDevice) *client.FireBaseClient {
-	return client.NewFirebaseClient(hClient, device)
+func NewFirebaseClient(hClient *http.Client, device *firebase_api.FirebaseDevice) *firebase_client.FireBaseClient {
+	return firebase_client.NewFirebaseClient(hClient, device)
 }
 
 func RandomAppFID() string {
-	result, _ := api.RandomAppFID()
+	result, _ := firebase_api.RandomAppFID()
 	return result
 }

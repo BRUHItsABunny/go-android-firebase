@@ -1,93 +1,91 @@
-package api
+package firebase_api
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
+	gokhttp_responses "github.com/BRUHItsABunny/gOkHttp/responses"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func parseJSON(resp *http.Response, result interface{}) error {
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("io.ReadAll: %w", err)
-	}
-	err = json.Unmarshal(responseBody, result)
-	if err != nil {
-		return fmt.Errorf("json.Unmarshal: %w", err)
-	}
-	err = resp.Body.Close()
-	if err != nil {
-		return fmt.Errorf("resp.Body.Close: %w", err)
-	}
-	return nil
-}
-
 func NotifyInstallationResult(resp *http.Response) (*FireBaseInstallationResponse, error) {
 	result := new(FireBaseInstallationResponse)
-	err := parseJSON(resp, result)
-	return result, err
+	err := gokhttp_responses.ResponseJSON(resp, result)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseJSON: %w", err)
+	}
+	return result, nil
 }
 
 func VerifyPasswordResult(resp *http.Response) (*GoogleVerifyPasswordResponse, error) {
 	result := new(GoogleVerifyPasswordResponse)
-	err := parseJSON(resp, result)
-	return result, err
+	err := gokhttp_responses.ResponseJSON(resp, result)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseJSON: %w", err)
+	}
+	return result, nil
 }
 
 func SignUpNewUserResult(resp *http.Response) (*GoogleSignUpNewUserResponse, error) {
 	result := new(GoogleSignUpNewUserResponse)
-	err := parseJSON(resp, result)
-	return result, err
+	err := gokhttp_responses.ResponseJSON(resp, result)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseJSON: %w", err)
+	}
+	return result, nil
 }
 
 func SetAccountInfoResult(resp *http.Response) (*GoogleSetAccountInfoResponse, error) {
 	result := new(GoogleSetAccountInfoResponse)
-	err := parseJSON(resp, result)
-	return result, err
+	err := gokhttp_responses.ResponseJSON(resp, result)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseJSON: %w", err)
+	}
+	return result, nil
 }
 
 func RefreshSecureTokenResult(resp *http.Response) (*SecureTokenRefreshResponse, error) {
 	result := new(SecureTokenRefreshResponse)
-	err := parseJSON(resp, result)
-	return result, err
+	err := gokhttp_responses.ResponseJSON(resp, result)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseJSON: %w", err)
+	}
+	return result, nil
 }
 
 func AuthResult(resp *http.Response) (*AuthResponse, error) {
 	result := new(AuthResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	if err == nil {
-		var timeStamp int64
-		for _, entryBytes := range bytes.Split(responseBody, []byte("\n")) {
-			entryParts := bytes.Split(entryBytes, []byte("="))
-			switch string(entryParts[0]) {
-			case "Expiry":
-				timeStamp, err = strconv.ParseInt(string(entryParts[1]), 10, 64)
-				result.Expires = time.Unix(timeStamp, 0)
-				break
-			case "grantedScopes":
-				result.Scopes = strings.Split(string(entryParts[1]), " ")
-				break
-			case "itMetadata":
-				result.Metadata = string(entryParts[1])
-				break
-			case "it":
-				result.Token = string(entryParts[1])
-				break
-			case "Auth":
-				result.Token = string(entryParts[1])
-				break
-			default:
-				continue
-			}
-			if err != nil {
-				break
-			}
+	responseBody, err := gokhttp_responses.ResponseBytes(resp)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseBytes: %w", err)
+	}
+	var timeStamp int64
+	for _, entryBytes := range bytes.Split(responseBody, []byte("\n")) {
+		entryParts := bytes.Split(entryBytes, []byte("="))
+		switch string(entryParts[0]) {
+		case "Expiry":
+			timeStamp, err = strconv.ParseInt(string(entryParts[1]), 10, 64)
+			result.Expires = time.Unix(timeStamp, 0)
+			break
+		case "grantedScopes":
+			result.Scopes = strings.Split(string(entryParts[1]), " ")
+			break
+		case "itMetadata":
+			result.Metadata = string(entryParts[1])
+			break
+		case "it":
+			result.Token = string(entryParts[1])
+			break
+		case "Auth":
+			result.Token = string(entryParts[1])
+			break
+		default:
+			continue
+		}
+		if err != nil {
+			break
 		}
 	}
 	return result, err
@@ -95,20 +93,21 @@ func AuthResult(resp *http.Response) (*AuthResponse, error) {
 
 func CheckinResult(resp *http.Response) (*CheckinResponse, error) {
 	result := new(CheckinResponse)
-	responseBody, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	if err == nil {
-		err = result.UnmarshalVT(responseBody)
+	responseBody, err := gokhttp_responses.ResponseBytes(resp)
+	if err != nil {
+		return nil, fmt.Errorf("gokhttp_responses.ResponseBytes: %w", err)
 	}
-	return result, err
+	err = result.UnmarshalVT(responseBody)
+	if err != nil {
+		return nil, fmt.Errorf("result.UnmarshalVT: %w", err)
+	}
+	return result, nil
 }
 
 func AndroidRegisterResult(resp *http.Response) (string, error) {
-	result := ""
-	responseBody, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	if err == nil {
-		result = string(responseBody[6:])
+	responseBody, err := gokhttp_responses.ResponseBytes(resp)
+	if err != nil {
+		return "", fmt.Errorf("gokhttp_responses.ResponseBytes: %w", err)
 	}
-	return result, err
+	return string(responseBody[6:]), nil
 }

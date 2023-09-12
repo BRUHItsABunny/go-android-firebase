@@ -13,7 +13,7 @@
 // 	protoc        v3.19.4
 // source: mcs.proto
 
-package api
+package firebase_api
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

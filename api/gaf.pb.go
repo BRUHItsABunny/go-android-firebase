@@ -4,7 +4,7 @@
 // 	protoc        v3.19.4
 // source: gaf.proto
 
-package api
+package firebase_api
 
 import (
 	go_android_utils "github.com/BRUHItsABunny/go-android-utils"

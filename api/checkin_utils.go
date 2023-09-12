@@ -1,4 +1,4 @@
-package api
+package firebase_api
 
 import (
 	andutils "github.com/BRUHItsABunny/go-android-utils"

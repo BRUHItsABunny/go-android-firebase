@@ -1,4 +1,4 @@
-package api
+package firebase_api
 
 import (
 	"bytes"
@@ -38,9 +38,9 @@ func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, appD
 		return nil, fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, fmt.Sprintf(EndpointInstallations, appData.FirebaseProjectID),
-		requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
-		requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, true, true, false)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, fmt.Sprintf(EndpointInstallations, appData.FirebaseProjectID),
+		gokhttp_requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, true, true, false)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -54,10 +54,10 @@ func VerifyPasswordRequest(ctx context.Context, device *FirebaseDevice, appData 
 		return nil, fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointVerifyPassword,
-		requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
-		requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
-		requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointVerifyPassword,
+		gokhttp_requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
+		gokhttp_requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -71,10 +71,10 @@ func SignUpNewUser(ctx context.Context, device *FirebaseDevice, appData *Firebas
 		return nil, fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointSignUpNewUser,
-		requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
-		requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
-		requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointSignUpNewUser,
+		gokhttp_requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
+		gokhttp_requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -88,10 +88,10 @@ func SetAccountInfoRequest(ctx context.Context, device *FirebaseDevice, appData 
 		return nil, fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointSetAccountInto,
-		requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
-		requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
-		requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointSetAccountInto,
+		gokhttp_requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
+		gokhttp_requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -105,10 +105,10 @@ func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, appD
 		return nil, fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointRefreshSecureToken,
-		requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
-		requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
-		requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointRefreshSecureToken,
+		gokhttp_requests.NewURLParamOption(url.Values{"key": {appData.GoogleAPIKey}}),
+		gokhttp_requests.NewPOSTRawOption(bytes.NewBuffer(body), HeaderValueMIMEJSON, int64(len(body))),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersFirebase(device, appData, false, false, true)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -116,18 +116,26 @@ func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, appD
 	return req, err
 }
 
-func AuthRequest(ctx context.Context, device *andutils.Device, appData *FirebaseAppData, data url.Values, email, masterToken string) (*http.Request, error) {
-	data["Email"] = []string{email}
-	data["Token"] = []string{masterToken}
-
+func AuthRequest(ctx context.Context, device *andutils.Device, appData *FirebaseAppData, data url.Values) (*http.Request, error) {
 	data["androidId"] = []string{device.Id.ToHexString()}
 	data["lang"] = []string{device.Locale.ToLocale("-", true)}
 	data["device_country"] = []string{device.Locale.GetCountry(false)}
 	data["sdk_version"] = []string{device.Version.ToAndroidSDK()}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointRefreshSecureToken,
-		requests.NewPOSTFormOption(data),
-		requests.NewHeaderOption(DefaultHeadersAuth(device)),
+	if appData != nil {
+		if appData.PackageID != "" {
+			data["callerPkg"] = []string{appData.PackageID}
+			data["app"] = []string{appData.PackageID}
+		}
+		if appData.PackageCertificate != "" {
+			data["callerSig"] = []string{strings.ToLower(appData.PackageCertificate)}
+			data["client_sig"] = []string{strings.ToLower(appData.PackageCertificate)}
+		}
+	}
+
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointRefreshSecureToken,
+		gokhttp_requests.NewPOSTFormOption(data),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersAuth(device)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -157,9 +165,9 @@ func CheckinAndroidRequest(ctx context.Context, device *FirebaseDevice, appData 
 		return nil, fmt.Errorf("reqObj.MarshalVT: %w", err)
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointAndroidCheckin,
-		requests.NewPOSTRawOption(bytes.NewBuffer(reqBytes), "application/x-protobuffer", int64(len(reqBytes))),
-		requests.NewHeaderOption(DefaultHeadersCheckin(device.Device)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointAndroidCheckin,
+		gokhttp_requests.NewPOSTRawOption(bytes.NewBuffer(reqBytes), "application/x-protobuffer", int64(len(reqBytes))),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersCheckin(device.Device)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
@@ -197,9 +205,9 @@ func C2DMAndroidRegisterRequest(ctx context.Context, device *FirebaseDevice, app
 		"target_ver":                         {device.Device.Version.ToAndroidSDK()}, // {"30"}
 	}
 
-	req, err := requests.MakePOSTRequest(ctx, EndpointAndroidRegister,
-		requests.NewPOSTFormOption(reqBody),
-		requests.NewHeaderOption(DefaultHeadersAndroidRegister(device)),
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointAndroidRegister,
+		gokhttp_requests.NewPOSTFormOption(reqBody),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersAndroidRegister(device)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)

@@ -1,10 +1,10 @@
-package client
+package firebase_client
 
 import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/BRUHItsABunny/go-android-firebase/api"
+	firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
 	"github.com/BRUHItsABunny/go-android-firebase/constants"
 	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/atomic"
@@ -16,7 +16,7 @@ import (
 )
 
 type MTalkMessageProcessor func(message proto.Message)
-type MTalkNotificationProcessor func(notification *api.DataMessageStanza)
+type MTalkNotificationProcessor func(notification *firebase_api.DataMessageStanza)
 
 type MTalkCon struct {
 	RawConn net.Conn
@@ -27,12 +27,12 @@ type MTalkCon struct {
 	streamIdReported int
 	streamId         int
 	stop             *atomic.Bool
-	Device           *api.FirebaseDevice
+	Device           *firebase_api.FirebaseDevice
 }
 
 const MTalkVersion = byte(41)
 
-func NewMTalkCon(device *api.FirebaseDevice) *MTalkCon {
+func NewMTalkCon(device *firebase_api.FirebaseDevice) *MTalkCon {
 	result := &MTalkCon{stop: atomic.NewBool(false), Device: device}
 	result.OnMessage = result.defaultOnMessage
 	result.OnNotification = result.defaultOnNotification
@@ -72,7 +72,7 @@ func (c *MTalkCon) Connect() error {
 	if err != nil {
 		return fmt.Errorf("result.readMessage: %w", err)
 	}
-	loginRespParsed, ok := loginResp.(*api.LoginResponse)
+	loginRespParsed, ok := loginResp.(*firebase_api.LoginResponse)
 	if !ok {
 		return errors.New("didn't receive login response")
 	}
@@ -101,21 +101,21 @@ func (c *MTalkCon) loop() {
 
 func (c *MTalkCon) defaultOnMessage(msg proto.Message) {
 	switch parsedMsg := msg.(type) {
-	case *api.HeartbeatPing:
-		response := &api.HeartbeatAck{
+	case *firebase_api.HeartbeatPing:
+		response := &firebase_api.HeartbeatAck{
 			Status: parsedMsg.Status,
 		}
 		if c.streamId != c.streamIdReported {
 			c.streamIdReported = c.streamId
 			response.LastStreamIdReceived = proto.Int32(int32(c.streamIdReported))
 		}
-		err := c.writeMessage(api.MCSTag_MCS_HEARTBEAT_ACK_TAG, response)
+		err := c.writeMessage(firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG, response)
 		if err != nil {
 			err = fmt.Errorf("c.writeMessage[PingAck]: %w", err)
 			panic(err)
 		}
 		break
-	case *api.DataMessageStanza:
+	case *firebase_api.DataMessageStanza:
 		if parsedMsg.PersistentId != nil {
 			c.Device.MTalkLastPersistentId = *parsedMsg.PersistentId
 		}
@@ -124,7 +124,7 @@ func (c *MTalkCon) defaultOnMessage(msg proto.Message) {
 	}
 }
 
-func (c *MTalkCon) defaultOnNotification(notification *api.DataMessageStanza) {
+func (c *MTalkCon) defaultOnNotification(notification *firebase_api.DataMessageStanza) {
 	fmt.Println(spew.Sdump(notification))
 }
 
@@ -143,27 +143,27 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	}
 
 	var result proto.Message
-	switch api.MCSTag(int(tag)) {
-	case api.MCSTag_MCS_HEARTBEAT_PING_TAG:
-		result = &api.HeartbeatPing{}
+	switch firebase_api.MCSTag(int(tag)) {
+	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
+		result = &firebase_api.HeartbeatPing{}
 		break
-	case api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
-		result = &api.HeartbeatAck{}
+	case firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
+		result = &firebase_api.HeartbeatAck{}
 		break
-	case api.MCSTag_MCS_LOGIN_REQUEST_TAG:
-		result = &api.LoginRequest{}
+	case firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG:
+		result = &firebase_api.LoginRequest{}
 		break
-	case api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
-		result = &api.LoginResponse{}
+	case firebase_api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
+		result = &firebase_api.LoginResponse{}
 		break
-	case api.MCSTag_MCS_CLOSE_TAG:
-		result = &api.Close{}
+	case firebase_api.MCSTag_MCS_CLOSE_TAG:
+		result = &firebase_api.Close{}
 		break
-	case api.MCSTag_MCS_IQ_STANZA_TAG:
-		result = &api.IqStanza{}
+	case firebase_api.MCSTag_MCS_IQ_STANZA_TAG:
+		result = &firebase_api.IqStanza{}
 		break
-	case api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
-		result = &api.DataMessageStanza{}
+	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
+		result = &firebase_api.DataMessageStanza{}
 		break
 	}
 	err = proto.Unmarshal(data, result)
@@ -175,7 +175,7 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	return result, nil
 }
 
-func (c *MTalkCon) writeMessage(tag api.MCSTag, message proto.Message) error {
+func (c *MTalkCon) writeMessage(tag firebase_api.MCSTag, message proto.Message) error {
 	// fmt.Println("IO:OUT:\n", spew.Sdump(message))
 	protoBytes, err := proto.Marshal(message)
 	if err != nil {
@@ -197,15 +197,15 @@ func (c *MTalkCon) writeMessage(tag api.MCSTag, message proto.Message) error {
 }
 
 func (c *MTalkCon) login() error {
-	authSvc := api.LoginRequest_ANDROID_ID
-	request := &api.LoginRequest{
+	authSvc := firebase_api.LoginRequest_ANDROID_ID
+	request := &firebase_api.LoginRequest{
 		Id:        proto.String("gms-22.48.14-000"),
 		Domain:    proto.String("mcs.android.com"),
 		User:      proto.String(strconv.FormatInt(c.Device.CheckinAndroidID, 10)),
 		Resource:  proto.String(strconv.FormatInt(c.Device.CheckinAndroidID, 10)),
 		AuthToken: proto.String(strconv.FormatUint(c.Device.CheckinSecurityToken, 10)),
 		DeviceId:  proto.String(fmt.Sprintf("android-%s", c.Device.Device.Id.ToHexString())),
-		Setting: []*api.Setting{{
+		Setting: []*firebase_api.Setting{{
 			Name:  proto.String("new_vc"),
 			Value: proto.String("1"),
 		}, {
@@ -233,7 +233,7 @@ func (c *MTalkCon) login() error {
 		AuthService:          &authSvc,
 		NetworkType:          proto.Int32(1),
 	}
-	return c.writeMessage(api.MCSTag_MCS_LOGIN_REQUEST_TAG, request)
+	return c.writeMessage(firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG, request)
 }
 
 func (c *MTalkCon) readVarInt() (int, error) {

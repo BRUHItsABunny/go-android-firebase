@@ -2,7 +2,7 @@
 // protoc-gen-go-vtproto version: v0.2.1-0.20220224152539-d8520340f573
 // source: mcs.proto
 
-package api
+package firebase_api
 
 import (
 	fmt "fmt"

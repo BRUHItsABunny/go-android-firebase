@@ -4,7 +4,7 @@
 // 	protoc        v3.19.4
 // source: checkin.proto
 
-package api
+package firebase_api
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

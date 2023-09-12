@@ -1,4 +1,4 @@
-package api
+package firebase_api
 
 import (
 	"encoding/base64"

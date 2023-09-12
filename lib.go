@@ -1,4 +1,4 @@
-package go_android_firebase
+package firebase
 
 import (
 	"github.com/BRUHItsABunny/go-android-firebase/api"

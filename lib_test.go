@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -226,24 +227,24 @@ func TestNativePushNotifications(t *testing.T) {
 	ctx := context.Background()
 	device := andutils.GetRandomDevice()
 	appData := &firebase_api.FirebaseAppData{
-		PackageID:            "com.debug.fcm",
-		PackageCertificate:   "194324D4357EBB453DDB2A9F8FC8E86C27A35A14",
-		GoogleAPIKey:         "AIzaSyBot7ALdoDk6RtUqNZbZ6Ik4ffqzaayY9I",
-		FirebaseProjectID:    "debug-fcm",
-		GMPAppID:             "1:1066350740658:android:4c54c351189dd709",
-		NotificationSenderID: "1066350740658",
-		AppVersion:           "1.5.6",
-		AppVersionWithBuild:  "17",
+		PackageID:            "fr.smarquis.fcm",
+		PackageCertificate:   "FC674E2E5582B7BEA69EE5CA921FCEFAD2918452",
+		GoogleAPIKey:         " AIzaSyDBHR45cWSsnJw-7inTYFDtK39-0TpjlhA",
+		FirebaseProjectID:    "fir-cloudmessaging-4e2cd",
+		GMPAppID:             "1:322141800886:android:7b41fd8ce1e97722",
+		NotificationSenderID: "322141800886",
+		AppVersion:           "1.9.0",
+		AppVersionWithBuild:  "1090000",
 		AuthVersion:          "FIS_v2",
-		SdkVersion:           "a:16.3.2",
+		SdkVersion:           "a:17.1.3",
 		AppNameHash:          "R1dAH9Ui7M-ynoznwBdw01tLxhI",
 	}
 	fDevice := &firebase_api.FirebaseDevice{
 		Device:                device,
 		CheckinAndroidID:      0,
 		CheckinSecurityToken:  0,
-		GmsVersion:            "214815028",
-		FirebaseClientVersion: "fcm-22.0.0",
+		GmsVersion:            "241718022",
+		FirebaseClientVersion: "fcm-23.1.2",
 	}
 
 	err := godotenv.Load(".env")
@@ -387,37 +388,24 @@ func TestConvert(t *testing.T) {
 }
 
 func sendPushNotificationNative(fDevice *firebase_api.FirebaseDevice, client *http.Client, token string) error {
-	headerOpt := gokhttp_requests.NewHeaderOption(http.Header{"user-agent": []string{"okhttp/3.12.1"}})
-	quotaParams := gokhttp_requests.NewPOSTFormOption(url.Values{"device_id": []string{fDevice.Device.Id.ToHexString()}, "credit_date": []string{time.Now().Format("2006-01-02")}, "type": []string{"1"}})
-	req, err := gokhttp_requests.MakePOSTRequest(context.Background(), "https://api.sartajahmed.in/debug_fcm/v1/credit/addCredit", headerOpt, quotaParams)
+	headerOpt := gokhttp_requests.NewHeaderOption(http.Header{})
+
+	body := strings.ReplaceAll("{\"data\":{\"to\":\"$TOKEN\",\"ttl\":60,\"priority\":\"high\",\"data\":{\"ping\":{}}}}", "$TOKEN", token)
+	req, err := gokhttp_requests.MakePOSTRequest(context.Background(), "https://us-central1-fir-cloudmessaging-4e2cd.cloudfunctions.net/send", headerOpt, gokhttp_requests.NewPOSTJSONOption([]byte(body), false))
 	if err != nil {
 		return err
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
+
 	respText, err := gokhttp_responses.ResponseText(resp)
 	if err != nil {
 		return err
 	}
-	// fmt.Println(respText)
-
-	sendParams := gokhttp_requests.NewPOSTFormOption(url.Values{"device_id": []string{fDevice.Device.Id.ToHexString()}, "push_device_token": []string{token}, "type": []string{"1"}, "push_limit": []string{"5"}})
-	req, err = gokhttp_requests.MakePOSTRequest(context.Background(), "https://api.sartajahmed.in/debug_fcm/v1/send_push/sendSimplePushTest", headerOpt, sendParams)
-	if err != nil {
-		return err
-	}
-	resp, err = client.Do(req)
-	if err != nil {
-		return err
-	}
-	respText, err = gokhttp_responses.ResponseText(resp)
-	if err != nil {
-		return err
-	}
-	// fmt.Println(respText)
-	fmt.Sprint(respText)
+	fmt.Println(respText)
 	return nil
 }
 

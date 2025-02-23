@@ -141,7 +141,6 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	if err != nil {
 		return nil, fmt.Errorf("c.readBytes data: %w", err)
 	}
-
 	var result proto.Message
 	switch firebase_api.MCSTag(int(tag)) {
 	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
@@ -168,10 +167,12 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	default:
 		return nil, fmt.Errorf("unknown tag: %d", tag)
 	}
+	fmt.Println(tag, length, string(data))
 	err = proto.Unmarshal(data, result)
 	if err != nil {
 		return nil, fmt.Errorf("proto.Unmarshal[%x]: %w", data, err)
 	}
+
 	c.streamId++
 	// fmt.Println("IO:IN:\n", spew.Sdump(result))
 	return result, nil
@@ -277,16 +278,14 @@ func (c *MTalkCon) writeVarInt(value int) error {
 
 func (c *MTalkCon) readBytes(len int) ([]byte, error) {
 	buf := make([]byte, len)
-	var result []byte
-	read, err := c.RawConn.Read(buf)
+	_, err := io.ReadFull(c.RawConn, buf)
 	if err != nil && !errors.Is(err, io.EOF) {
-		err = fmt.Errorf(" c.RawConn.Read: %w", err)
+		err = fmt.Errorf("io.ReadFull: %w", err)
 	} else {
 		err = nil
 	}
-	result = buf[:read]
 	// fmt.Println(fmt.Sprintf("%s\tIO:BYTESIN:%s", time.Now().Format(time.RFC3339), hex.EncodeToString(result)))
-	return result, err
+	return buf, err
 }
 
 func (c *MTalkCon) readByte() (byte, error) {

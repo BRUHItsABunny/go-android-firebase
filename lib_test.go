@@ -453,7 +453,8 @@ func TestWebPushNotifications(t *testing.T) {
 	time.Sleep(time.Second * 5)
 
 	sender := getNotificationDataWeb()
-	subType := "https://push.foo/#" + strings.ToUpper(uuid.New().String())
+	uuidStr := strings.ToUpper(uuid.New().String())
+	subType := "https://push.foo/#" + uuidStr[:len(uuidStr)-3]
 	appid := "f1pdRYedASE" // TODO: IDK where this one comes from
 
 	authNonceBytes := make([]byte, 16)

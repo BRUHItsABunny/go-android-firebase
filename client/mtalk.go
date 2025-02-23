@@ -165,6 +165,8 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
 		result = &firebase_api.DataMessageStanza{}
 		break
+	default:
+		return nil, fmt.Errorf("unknown tag: %d", tag)
 	}
 	err = proto.Unmarshal(data, result)
 	if err != nil {

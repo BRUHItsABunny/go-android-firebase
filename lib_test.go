@@ -1,11 +1,14 @@
 package firebase
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdh"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
 	"github.com/BRUHItsABunny/gOkHttp/requests"
@@ -15,6 +18,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"google.golang.org/protobuf/proto"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -23,6 +28,118 @@ import (
 	"testing"
 	"time"
 )
+
+type FakeMTalk struct {
+	buff *bytes.Buffer
+}
+
+func (c *FakeMTalk) readBytes(len int) ([]byte, error) {
+	buf := make([]byte, len)
+	var result []byte
+	read, err := c.buff.Read(buf)
+	if err != nil && !errors.Is(err, io.EOF) {
+		err = fmt.Errorf(" c.buff.Read: %w", err)
+	} else {
+		err = nil
+	}
+	result = buf[:read]
+	// fmt.Println(fmt.Sprintf("%s\tIO:BYTESIN:%s", time.Now().Format(time.RFC3339), hex.EncodeToString(result)))
+	return result, err
+}
+
+func (c *FakeMTalk) readByte() (byte, error) {
+	buf, err := c.readBytes(1)
+	if err != nil {
+		return 0, err
+	}
+	if len(buf) != 1 {
+		return 0, errors.New("no data read")
+	}
+	return buf[0], nil
+}
+
+func (c *FakeMTalk) readVarInt() (int, error) {
+	shift := uint(0)
+	result := int64(0)
+	for {
+		b, err := c.readByte()
+		if err != nil {
+			return 0, fmt.Errorf("c.readByte: %w", err)
+		}
+		result |= int64(b&0x7f) << shift
+		if (b & 0x80) != 0x80 {
+			break
+		}
+		shift += 7
+	}
+	return int(result), nil
+}
+
+func NewFakeMTalk(fileName string) (*FakeMTalk, error) {
+	fileBody, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return &FakeMTalk{
+		buff: bytes.NewBuffer(fileBody),
+	}, nil
+}
+
+func TestDecodeItem(t *testing.T) {
+	c, err := NewFakeMTalk("_resources/samples/item.bin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	tag, err := c.readByte()
+	if err != nil {
+		t.Fatal(fmt.Errorf("c.readByte: %w", err))
+	}
+	length, err := c.readVarInt()
+	if err != nil {
+		t.Fatal(fmt.Errorf("c.readVarInt: %w", err))
+	}
+	data, err := c.readBytes(length)
+	if err != nil {
+		t.Fatal(fmt.Errorf("c.readBytes data: %w", err))
+	}
+
+	fmt.Println(tag, length, string(data))
+	fmt.Println(hex.EncodeToString(data))
+
+	var result proto.Message
+	switch firebase_api.MCSTag(int(tag)) {
+	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
+		result = &firebase_api.HeartbeatPing{}
+		break
+	case firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
+		result = &firebase_api.HeartbeatAck{}
+		break
+	case firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG:
+		result = &firebase_api.LoginRequest{}
+		break
+	case firebase_api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
+		result = &firebase_api.LoginResponse{}
+		break
+	case firebase_api.MCSTag_MCS_CLOSE_TAG:
+		result = &firebase_api.Close{}
+		break
+	case firebase_api.MCSTag_MCS_IQ_STANZA_TAG:
+		result = &firebase_api.IqStanza{}
+		break
+	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
+		result = &firebase_api.DataMessageStanza{}
+		break
+	default:
+		t.Fatal(fmt.Errorf("unknown tag: %d", tag))
+	}
+	err = proto.Unmarshal(data, result)
+	if err != nil {
+		t.Fatal(fmt.Errorf("proto.Unmarshal[%x]: %w", data, err))
+	}
+
+	fmt.Println(spew.Sdump(result))
+	// This succeeds so I know something is wrong in the registration/sending push notification part
+}
 
 func TestAuthLogin(t *testing.T) {
 	err := godotenv.Load(".env")

@@ -2,6 +2,8 @@ package firebase
 
 import (
 	"context"
+	"crypto/ecdh"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -11,7 +13,9 @@ import (
 	"github.com/BRUHItsABunny/go-android-firebase/api"
 	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -303,23 +307,16 @@ func TestWebPushNotifications(t *testing.T) {
 	ctx := context.Background()
 	device := andutils.GetRandomDevice()
 	appData := &firebase_api.FirebaseAppData{
-		PackageID:            "com.debug.fcm",
-		PackageCertificate:   "194324D4357EBB453DDB2A9F8FC8E86C27A35A14",
-		GoogleAPIKey:         "AIzaSyBot7ALdoDk6RtUqNZbZ6Ik4ffqzaayY9I",
-		FirebaseProjectID:    "debug-fcm",
-		GMPAppID:             "1:1066350740658:android:4c54c351189dd709",
-		NotificationSenderID: "1066350740658",
-		AppVersion:           "1.5.6",
-		AppVersionWithBuild:  "17",
-		AuthVersion:          "FIS_v2",
-		SdkVersion:           "a:16.3.2",
-		AppNameHash:          "R1dAH9Ui7M-ynoznwBdw01tLxhI",
+		PackageID:           "com.brave.browser",
+		PackageCertificate:  "4b5d0914b118f51f30634a1523f96e020ab24fd2",
+		AppVersion:          "1.75.180",
+		AppVersionWithBuild: "427518024",
 	}
 	fDevice := &firebase_api.FirebaseDevice{
 		Device:                device,
 		CheckinAndroidID:      0,
 		CheckinSecurityToken:  0,
-		GmsVersion:            "214815028",
+		GmsVersion:            "250632029",
 		FirebaseClientVersion: "fcm-22.0.0",
 	}
 
@@ -330,12 +327,6 @@ func TestWebPushNotifications(t *testing.T) {
 	}
 
 	fClient := NewFirebaseClient(hClient, fDevice)
-	_, err = fClient.NotifyInstallation(ctx, appData)
-	if err != nil {
-		t.Error(err)
-	}
-
-	time.Sleep(time.Second * 5)
 
 	checkinResult, err := fClient.Checkin(ctx, appData, "", "")
 	if err != nil {
@@ -344,7 +335,39 @@ func TestWebPushNotifications(t *testing.T) {
 	fmt.Println(fmt.Sprintf("AndroidID (checkin): %d\nSecurityToken: %d", checkinResult.AndroidId, checkinResult.SecurityToken))
 	time.Sleep(time.Second * 5)
 
-	result, err := fClient.C2DMRegisterAndroid(ctx, appData)
+	sender := getNotificationDataWeb()
+	subType := "https://push.foo/#" + strings.ToUpper(uuid.New().String())
+	appid := "f1pdRYedASE" // TODO: IDK where this one comes from
+
+	authNonceBytes := make([]byte, 16)
+	_, err = rand.Read(authNonceBytes)
+	if err != nil {
+		log.Fatalf("Failed to generate random bytes: %v", err)
+	}
+
+	curve := ecdh.P256()
+	privateKey, err := curve.GenerateKey(rand.Reader)
+	if err != nil {
+		log.Fatalf("Failed to generate key pair: %v", err)
+	}
+	publicKey := privateKey.PublicKey()
+	publicKeyStr := base64.RawURLEncoding.EncodeToString(publicKey.Bytes())
+	fmt.Printf("My Public Key (base64): %s\n", publicKeyStr)
+	// remotePubKeyBytes, err := base64.RawURLEncoding.DecodeString(sender)
+	// if err != nil {
+	// 	log.Fatalf("Failed to decode remote public key: %v", err)
+	// }
+	// remotePubKey, err := curve.NewPublicKey(remotePubKeyBytes)
+	// if err != nil {
+	// 	log.Fatalf("Failed to parse remote public key: %v", err)
+	// }
+	// // 3. Perform ECDH to compute the shared secret.
+	// sharedSecret, err := privateKey.ECDH(remotePubKey)
+	// if err != nil {
+	// 	log.Fatalf("ECDH key agreement error: %v", err)
+	// }
+
+	result, err := fClient.C2DMRegisterWeb(ctx, appData, sender, subType, appid)
 	if err != nil {
 		t.Error(err)
 	}
@@ -364,7 +387,7 @@ func TestWebPushNotifications(t *testing.T) {
 		resultChan <- notification
 	}
 	pre := time.Now()
-	err = sendPushNotificationNative(fDevice, hClient, result) // TODO: Web implementation
+	err = sendNotificationWeb(hClient, result, publicKeyStr, base64.RawURLEncoding.EncodeToString(authNonceBytes))
 	if err != nil {
 		t.Error(err)
 	}
@@ -409,10 +432,33 @@ func sendPushNotificationNative(fDevice *firebase_api.FirebaseDevice, client *ht
 	return nil
 }
 
-func sendNotificationWeb() {
-	// register
+func sendNotificationWeb(client *http.Client, token, publicKey, authNonce string) error {
+	headerOpt := gokhttp_requests.NewHeaderOption(http.Header{})
 
-	// send the notification
+	body := strings.ReplaceAll("{\"pushSubscription\":{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/$TOKEN\",\"expirationTime\":null,\"keys\":{\"p256dh\":\"$PUBLIC_KEY\",\"auth\":\"$AUTH_NONCE\"}},\"notification\":{\"title\":\"Push.Foo Notification Title\",\"actions\":[{\"action\":\"open_project_repo\",\"title\":\"Show source code\"},{\"action\":\"open_author_twitter\",\"title\":\"Author on Twitter\"},{\"action\":\"open_author_linkedin\",\"title\":\"Author on LinkedIn\"},{\"action\":\"open_url\",\"title\":\"Open custom URL\"}],\"body\":\"Test notification body\",\"dir\":\"auto\",\"image\":\"https://push.foo/images/social.png\",\"icon\":\"https://push.foo/images/logo.jpg\",\"badge\":\"https://push.foo/images/logo-mask.png\",\"lang\":\"en-US\",\"renotify\":false,\"requireInteraction\":true,\"silent\":false,\"tag\":\"Custom tag\",\"timestamp\":1740333526775,\"data\":{\"dateOfArrival\":1740333526775,\"updateInAppCounter\":true,\"updateIconBadgeCounter\":true,\"author\":{\"name\":\"Maxim Salnikov\",\"github\":\"https://github.com/webmaxru\",\"twitter\":\"https://twitter.com/webmaxru\",\"linkedin\":\"https://www.linkedin.com/in/webmax/\"},\"project\":{\"github\":\"https://github.com/webmaxru/push.foo\"},\"action\":{\"url\":\"https://push.foo\"}}}}", "$TOKEN", token)
+	body = strings.ReplaceAll(body, "$PUBLIC_KEY", publicKey)
+	body = strings.ReplaceAll(body, "$AUTH_NONCE", authNonce)
 
-	// decrypt
+	req, err := gokhttp_requests.MakePOSTRequest(context.Background(), "https://push.foo/api/quick-notification", headerOpt, gokhttp_requests.NewPOSTJSONOption([]byte(body), false))
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	respText, err := gokhttp_responses.ResponseText(resp)
+	if err != nil {
+		return err
+	}
+	fmt.Println(respText)
+	return nil
+}
+
+func getNotificationDataWeb() string {
+	// Use https://push.foo
+	// Return publicKey (sender)
+	return "BDweuGCGNzjleeyQYPvtFLEbMG4BX9rc_M9Abtx16NvaR_Jpo5i08WAJUll2Hn6ZiErbSjkzxWdpKjus_qO2cMw"
 }

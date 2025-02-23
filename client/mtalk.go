@@ -168,7 +168,7 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	}
 	err = proto.Unmarshal(data, result)
 	if err != nil {
-		return nil, fmt.Errorf("proto.Unmarshal: %w", err)
+		return nil, fmt.Errorf("proto.Unmarshal[%x]: %w", data, err)
 	}
 	c.streamId++
 	// fmt.Println("IO:IN:\n", spew.Sdump(result))

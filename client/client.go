@@ -217,3 +217,22 @@ func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context, appData *fireb
 	c.Device.FirebaseInstallations[appData.PackageID] = installation
 	return result, err
 }
+
+func (c *FireBaseClient) C2DMRegisterWeb(ctx context.Context, appData *firebase_api.FirebaseAppData, sender, subtype, appid string) (string, error) {
+	req, err := firebase_api.C2DMWebRegisterRequest(ctx, c.Device, appData, sender, subtype, appid)
+	if err != nil {
+		return "", fmt.Errorf("api.C2DMWebRegisterRequest: %w", err)
+	}
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("c.Client.Do: %w", err)
+	}
+
+	result, err := firebase_api.AndroidRegisterResult(resp)
+	if err != nil {
+		return "", fmt.Errorf("api.AndroidRegisterResult: %w", err)
+	}
+	// TODO: Store subscription (notification token) somewhere?
+	return result, err
+}

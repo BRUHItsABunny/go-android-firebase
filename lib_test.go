@@ -1,9 +1,12 @@
 package firebase
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
 	"github.com/BRUHItsABunny/gOkHttp/requests"
@@ -11,7 +14,11 @@ import (
 	"github.com/BRUHItsABunny/go-android-firebase/api"
 	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"google.golang.org/protobuf/proto"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,6 +26,118 @@ import (
 	"testing"
 	"time"
 )
+
+type FakeMTalk struct {
+	buff *bytes.Buffer
+}
+
+func (c *FakeMTalk) readBytes(len int) ([]byte, error) {
+	buf := make([]byte, len)
+	var result []byte
+	read, err := c.buff.Read(buf)
+	if err != nil && !errors.Is(err, io.EOF) {
+		err = fmt.Errorf(" c.buff.Read: %w", err)
+	} else {
+		err = nil
+	}
+	result = buf[:read]
+	// fmt.Println(fmt.Sprintf("%s\tIO:BYTESIN:%s", time.Now().Format(time.RFC3339), hex.EncodeToString(result)))
+	return result, err
+}
+
+func (c *FakeMTalk) readByte() (byte, error) {
+	buf, err := c.readBytes(1)
+	if err != nil {
+		return 0, err
+	}
+	if len(buf) != 1 {
+		return 0, errors.New("no data read")
+	}
+	return buf[0], nil
+}
+
+func (c *FakeMTalk) readVarInt() (int, error) {
+	shift := uint(0)
+	result := int64(0)
+	for {
+		b, err := c.readByte()
+		if err != nil {
+			return 0, fmt.Errorf("c.readByte: %w", err)
+		}
+		result |= int64(b&0x7f) << shift
+		if (b & 0x80) != 0x80 {
+			break
+		}
+		shift += 7
+	}
+	return int(result), nil
+}
+
+func NewFakeMTalk(fileName string) (*FakeMTalk, error) {
+	fileBody, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return &FakeMTalk{
+		buff: bytes.NewBuffer(fileBody),
+	}, nil
+}
+
+func TestDecodeItem(t *testing.T) {
+	c, err := NewFakeMTalk("_resources/samples/item.bin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	tag, err := c.readByte()
+	if err != nil {
+		t.Fatal(fmt.Errorf("c.readByte: %w", err))
+	}
+	length, err := c.readVarInt()
+	if err != nil {
+		t.Fatal(fmt.Errorf("c.readVarInt: %w", err))
+	}
+	data, err := c.readBytes(length)
+	if err != nil {
+		t.Fatal(fmt.Errorf("c.readBytes data: %w", err))
+	}
+
+	fmt.Println(tag, length, string(data))
+	fmt.Println(hex.EncodeToString(data))
+
+	var result proto.Message
+	switch firebase_api.MCSTag(int(tag)) {
+	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
+		result = &firebase_api.HeartbeatPing{}
+		break
+	case firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
+		result = &firebase_api.HeartbeatAck{}
+		break
+	case firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG:
+		result = &firebase_api.LoginRequest{}
+		break
+	case firebase_api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
+		result = &firebase_api.LoginResponse{}
+		break
+	case firebase_api.MCSTag_MCS_CLOSE_TAG:
+		result = &firebase_api.Close{}
+		break
+	case firebase_api.MCSTag_MCS_IQ_STANZA_TAG:
+		result = &firebase_api.IqStanza{}
+		break
+	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
+		result = &firebase_api.DataMessageStanza{}
+		break
+	default:
+		t.Fatal(fmt.Errorf("unknown tag: %d", tag))
+	}
+	err = proto.Unmarshal(data, result)
+	if err != nil {
+		t.Fatal(fmt.Errorf("proto.Unmarshal[%x]: %w", data, err))
+	}
+
+	fmt.Println(spew.Sdump(result))
+	// This succeeds so I know something is wrong in the registration/sending push notification part
+}
 
 func TestAuthLogin(t *testing.T) {
 	err := godotenv.Load(".env")
@@ -48,7 +167,10 @@ func TestAuthLogin(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := client.Auth(ctx, appData, values, os.Getenv("AUTH_LOGIN_EMAIL"), os.Getenv("AUTH_LOGIN_OAUTH_TOKEN"))
 	if err == nil {
@@ -91,7 +213,10 @@ func TestAuthOAUTH(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := client.Auth(ctx, appData, values, os.Getenv("AUTH_OAUTH_EMAIL"), os.Getenv("AUTH_OAUTH_MASTER_TOKEN"))
 	if err == nil {
@@ -119,7 +244,10 @@ func TestNotify(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := client.NotifyInstallation(ctx, appData)
 	if err == nil {
@@ -150,7 +278,10 @@ func TestVerifyPassword(t *testing.T) {
 		password = os.Getenv("VERIFY_PASSWORD_PASSWORD")
 	)
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	req := &firebase_api.VerifyPasswordRequestBody{
 		Email:             email,
@@ -195,7 +326,10 @@ func TestRegister3(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient := NewFirebaseClient(hClient, fDevice)
+	fClient, err := NewFirebaseClient(hClient, fDevice)
+	if err != nil {
+		t.Fatal(err)
+	}
 	authResult, err := fClient.NotifyInstallation(ctx, appData)
 	if err != nil {
 		t.Error(err)
@@ -253,7 +387,10 @@ func TestNativePushNotifications(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient := NewFirebaseClient(hClient, fDevice)
+	fClient, err := NewFirebaseClient(hClient, fDevice)
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, err = fClient.NotifyInstallation(ctx, appData)
 	if err != nil {
 		t.Error(err)
@@ -303,23 +440,16 @@ func TestWebPushNotifications(t *testing.T) {
 	ctx := context.Background()
 	device := andutils.GetRandomDevice()
 	appData := &firebase_api.FirebaseAppData{
-		PackageID:            "com.debug.fcm",
-		PackageCertificate:   "194324D4357EBB453DDB2A9F8FC8E86C27A35A14",
-		GoogleAPIKey:         "AIzaSyBot7ALdoDk6RtUqNZbZ6Ik4ffqzaayY9I",
-		FirebaseProjectID:    "debug-fcm",
-		GMPAppID:             "1:1066350740658:android:4c54c351189dd709",
-		NotificationSenderID: "1066350740658",
-		AppVersion:           "1.5.6",
-		AppVersionWithBuild:  "17",
-		AuthVersion:          "FIS_v2",
-		SdkVersion:           "a:16.3.2",
-		AppNameHash:          "R1dAH9Ui7M-ynoznwBdw01tLxhI",
+		PackageID:           "com.brave.browser",
+		PackageCertificate:  "4b5d0914b118f51f30634a1523f96e020ab24fd2",
+		AppVersion:          "1.75.180",
+		AppVersionWithBuild: "427518024",
 	}
 	fDevice := &firebase_api.FirebaseDevice{
 		Device:                device,
 		CheckinAndroidID:      0,
 		CheckinSecurityToken:  0,
-		GmsVersion:            "214815028",
+		GmsVersion:            "250632029",
 		FirebaseClientVersion: "fcm-22.0.0",
 	}
 
@@ -329,13 +459,10 @@ func TestWebPushNotifications(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient := NewFirebaseClient(hClient, fDevice)
-	_, err = fClient.NotifyInstallation(ctx, appData)
+	fClient, err := NewFirebaseClient(hClient, fDevice)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-
-	time.Sleep(time.Second * 5)
 
 	checkinResult, err := fClient.Checkin(ctx, appData, "", "")
 	if err != nil {
@@ -344,7 +471,12 @@ func TestWebPushNotifications(t *testing.T) {
 	fmt.Println(fmt.Sprintf("AndroidID (checkin): %d\nSecurityToken: %d", checkinResult.AndroidId, checkinResult.SecurityToken))
 	time.Sleep(time.Second * 5)
 
-	result, err := fClient.C2DMRegisterAndroid(ctx, appData)
+	sender := getNotificationDataWeb()
+	uuidStr := strings.ToUpper(uuid.New().String())
+	subType := "https://push.foo/#" + uuidStr[:len(uuidStr)-3]
+	appid := "f1pdRYedASE" // TODO: IDK where this one comes from
+
+	result, err := fClient.C2DMRegisterWeb(ctx, appData, sender, subType, appid)
 	if err != nil {
 		t.Error(err)
 	}
@@ -364,7 +496,7 @@ func TestWebPushNotifications(t *testing.T) {
 		resultChan <- notification
 	}
 	pre := time.Now()
-	err = sendPushNotificationNative(fDevice, hClient, result) // TODO: Web implementation
+	err = sendNotificationWeb(hClient, result, fDevice.MTalkPublicKey, fDevice.MTalkAuthSecret)
 	if err != nil {
 		t.Error(err)
 	}
@@ -409,10 +541,37 @@ func sendPushNotificationNative(fDevice *firebase_api.FirebaseDevice, client *ht
 	return nil
 }
 
-func sendNotificationWeb() {
-	// register
+func sendNotificationWeb(client *http.Client, token, publicKey, authNonce string) error {
+	headerOpt := gokhttp_requests.NewHeaderOption(http.Header{})
 
-	// send the notification
+	body := strings.ReplaceAll("{\"pushSubscription\":{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/$TOKEN\",\"expirationTime\":null,\"keys\":{\"p256dh\":\"$PUBLIC_KEY\",\"auth\":\"$AUTH_NONCE\"}},\"notification\":{\"title\":\"Push.Foo Notification Title\",\"actions\":[{\"action\":\"open_project_repo\",\"title\":\"Show source code\"},{\"action\":\"open_author_twitter\",\"title\":\"Author on Twitter\"},{\"action\":\"open_author_linkedin\",\"title\":\"Author on LinkedIn\"},{\"action\":\"open_url\",\"title\":\"Open custom URL\"}],\"body\":\"Test notification body\",\"dir\":\"auto\",\"image\":\"https://push.foo/images/social.png\",\"icon\":\"https://push.foo/images/logo.jpg\",\"badge\":\"https://push.foo/images/logo-mask.png\",\"lang\":\"en-US\",\"renotify\":false,\"requireInteraction\":true,\"silent\":false,\"tag\":\"Custom tag\",\"timestamp\":1740333526775,\"data\":{\"dateOfArrival\":1740333526775,\"updateInAppCounter\":true,\"updateIconBadgeCounter\":true,\"author\":{\"name\":\"Maxim Salnikov\",\"github\":\"https://github.com/webmaxru\",\"twitter\":\"https://twitter.com/webmaxru\",\"linkedin\":\"https://www.linkedin.com/in/webmax/\"},\"project\":{\"github\":\"https://github.com/webmaxru/push.foo\"},\"action\":{\"url\":\"https://push.foo\"}}}}", "$TOKEN", token)
+	body = strings.ReplaceAll(body, "$PUBLIC_KEY", publicKey)
+	body = strings.ReplaceAll(body, "$AUTH_NONCE", authNonce)
 
-	// decrypt
+	req, err := gokhttp_requests.MakePOSTRequest(context.Background(), "https://push.foo/api/quick-notification", headerOpt, gokhttp_requests.NewPOSTJSONOption([]byte(body), false))
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	respText, err := gokhttp_responses.ResponseText(resp)
+	if err != nil {
+		return err
+	}
+	fmt.Println(respText)
+	return nil
 }
+
+func getNotificationDataWeb() string {
+	// Use https://push.foo
+	// Return publicKey (sender)
+	return "BDweuGCGNzjleeyQYPvtFLEbMG4BX9rc_M9Abtx16NvaR_Jpo5i08WAJUll2Hn6ZiErbSjkzxWdpKjus_qO2cMw"
+}
+
+// TODO: Write unittests with this:
+// https://tests.peter.sh/push-message-generator/
+// https://github.com/beverloo/peter.sh/tree/master/tests

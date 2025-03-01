@@ -214,3 +214,36 @@ func C2DMAndroidRegisterRequest(ctx context.Context, device *FirebaseDevice, app
 	}
 	return req, err
 }
+
+func C2DMWebRegisterRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, sender, subType, appId string) (*http.Request, error) {
+	reqBody := url.Values{
+		"sender":           {sender},
+		"X-subscription":   {sender},
+		"X-X-subscription": {sender},
+		"X-subtype":        {"wp:" + subType + "-V2"},
+		"X-X-subtype":      {"wp:" + subType + "-V2"},
+		"X-app_ver":        {appData.AppVersionWithBuild},
+		"X-osv":            {device.Device.Version.ToAndroidSDK()},
+		"X-cliv":           {"iid-12451000"},
+		"X-gmsv":           {device.GmsVersion}, // {"250632029"},
+		"X-appid":          {appId},
+		"X-scope":          {"GCM"},
+		"X-app_ver_name":   {appData.AppVersion},
+		"app":              {appData.PackageID},
+		"device":           {strconv.FormatInt(device.CheckinAndroidID, 10)},
+		"app_ver":          {appData.AppVersionWithBuild},
+		"gcm_ver":          {device.GmsVersion}, //{"214815028"},
+		"plat":             {"0"},
+		"cert":             {strings.ToLower(appData.PackageCertificate)},
+		"target_ver":       {device.Device.Version.ToAndroidSDK()}, // {"30"}
+	}
+
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointAndroidRegister,
+		gokhttp_requests.NewPOSTFormOption(reqBody),
+		gokhttp_requests.NewHeaderOption(DefaultHeadersAndroidRegister(device)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)
+	}
+	return req, err
+}

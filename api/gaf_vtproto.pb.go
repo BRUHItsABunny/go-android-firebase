@@ -357,6 +357,27 @@ func (m *FirebaseDevice) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.MTalkAuthSecret) > 0 {
+		i -= len(m.MTalkAuthSecret)
+		copy(dAtA[i:], m.MTalkAuthSecret)
+		i = encodeVarint(dAtA, i, uint64(len(m.MTalkAuthSecret)))
+		i--
+		dAtA[i] = 0x52
+	}
+	if len(m.MTalkPublicKey) > 0 {
+		i -= len(m.MTalkPublicKey)
+		copy(dAtA[i:], m.MTalkPublicKey)
+		i = encodeVarint(dAtA, i, uint64(len(m.MTalkPublicKey)))
+		i--
+		dAtA[i] = 0x4a
+	}
+	if len(m.MTalkPrivateKey) > 0 {
+		i -= len(m.MTalkPrivateKey)
+		copy(dAtA[i:], m.MTalkPrivateKey)
+		i = encodeVarint(dAtA, i, uint64(len(m.MTalkPrivateKey)))
+		i--
+		dAtA[i] = 0x42
+	}
 	if len(m.GmsVersion) > 0 {
 		i -= len(m.GmsVersion)
 		copy(dAtA[i:], m.GmsVersion)
@@ -621,6 +642,18 @@ func (m *FirebaseDevice) SizeVT() (n int) {
 		n += 1 + l + sov(uint64(l))
 	}
 	l = len(m.GmsVersion)
+	if l > 0 {
+		n += 1 + l + sov(uint64(l))
+	}
+	l = len(m.MTalkPrivateKey)
+	if l > 0 {
+		n += 1 + l + sov(uint64(l))
+	}
+	l = len(m.MTalkPublicKey)
+	if l > 0 {
+		n += 1 + l + sov(uint64(l))
+	}
+	l = len(m.MTalkAuthSecret)
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
@@ -1899,6 +1932,102 @@ func (m *FirebaseDevice) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.GmsVersion = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MTalkPrivateKey", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MTalkPrivateKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MTalkPublicKey", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MTalkPublicKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MTalkAuthSecret", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MTalkAuthSecret = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

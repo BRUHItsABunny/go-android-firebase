@@ -18,7 +18,7 @@ type FireBaseClient struct {
 	MTalk  *MTalkCon
 }
 
-func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice) *FireBaseClient {
+func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice) (*FireBaseClient, error) {
 	if client == nil {
 		client = http.DefaultClient
 	}
@@ -28,12 +28,17 @@ func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice)
 	if device.Device == nil {
 		device.Device = andutils.GetRandomDevice()
 	}
+	mTalk, err := NewMTalkCon(device)
+	if err != nil {
+		err = fmt.Errorf("NewMTalkCon: %w", err)
+		return nil, err
+	}
 
 	return &FireBaseClient{
 		Client: client,
 		Device: device,
-		MTalk:  NewMTalkCon(device),
-	}
+		MTalk:  mTalk,
+	}, nil
 }
 
 func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *firebase_api.FirebaseAppData) (*firebase_api.FireBaseInstallationResponse, error) {
@@ -222,5 +227,24 @@ func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context, appData *fireb
 	}
 	installation.NotificationData.NotificationToken = result
 	c.Device.FirebaseInstallations[appData.PackageID] = installation
+	return result, err
+}
+
+func (c *FireBaseClient) C2DMRegisterWeb(ctx context.Context, appData *firebase_api.FirebaseAppData, sender, subtype, appid string) (string, error) {
+	req, err := firebase_api.C2DMWebRegisterRequest(ctx, c.Device, appData, sender, subtype, appid)
+	if err != nil {
+		return "", fmt.Errorf("api.C2DMWebRegisterRequest: %w", err)
+	}
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("c.Client.Do: %w", err)
+	}
+
+	result, err := firebase_api.AndroidRegisterResult(resp)
+	if err != nil {
+		return "", fmt.Errorf("api.AndroidRegisterResult: %w", err)
+	}
+	// TODO: Store subscription (notification token) somewhere?
 	return result, err
 }

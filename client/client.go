@@ -52,6 +52,13 @@ func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *fireba
 		return nil, fmt.Errorf("api.NotifyInstallationResult: %w", err)
 	}
 
+	if result == nil {
+		return nil, fmt.Errorf("firebase_api.NotifyInstallationResult: nil result")
+	}
+	if len(result.AuthToken.Expiration) < 1 {
+		return nil, fmt.Errorf("firebase_api.NotifyInstallationResult: invalid auth token")
+	}
+
 	if c.Device.FirebaseInstallations == nil {
 		c.Device.FirebaseInstallations = map[string]*firebase_api.FirebaseInstallationData{}
 	}

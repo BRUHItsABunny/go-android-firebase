@@ -12,7 +12,12 @@ import (
 
 func NotifyInstallationResult(resp *http.Response) (*FireBaseInstallationResponse, error) {
 	result := new(FireBaseInstallationResponse)
-	err := gokhttp_responses.ResponseJSON(resp, result)
+	err := gokhttp_responses.CheckHTTPCode(resp, http.StatusOK)
+	if err != nil {
+		err = fmt.Errorf("gokhttp_responses.CheckHTTPCode: %w", err)
+		return nil, err
+	}
+	err = gokhttp_responses.ResponseJSON(resp, result)
 	if err != nil {
 		return nil, fmt.Errorf("gokhttp_responses.ResponseJSON: %w", err)
 	}

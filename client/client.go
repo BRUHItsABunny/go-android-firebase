@@ -18,7 +18,7 @@ type FireBaseClient struct {
 	MTalk  *MTalkCon
 }
 
-func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice) *FireBaseClient {
+func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice) (*FireBaseClient, error) {
 	if client == nil {
 		client = http.DefaultClient
 	}
@@ -28,12 +28,17 @@ func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice)
 	if device.Device == nil {
 		device.Device = andutils.GetRandomDevice()
 	}
+	mTalk, err := NewMTalkCon(device)
+	if err != nil {
+		err = fmt.Errorf("NewMTalkCon: %w", err)
+		return nil, err
+	}
 
 	return &FireBaseClient{
 		Client: client,
 		Device: device,
-		MTalk:  NewMTalkCon(device),
-	}
+		MTalk:  mTalk,
+	}, nil
 }
 
 func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *firebase_api.FirebaseAppData) (*firebase_api.FireBaseInstallationResponse, error) {

@@ -3,8 +3,6 @@ package firebase
 import (
 	"bytes"
 	"context"
-	"crypto/ecdh"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -169,7 +167,10 @@ func TestAuthLogin(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := client.Auth(ctx, appData, values, os.Getenv("AUTH_LOGIN_EMAIL"), os.Getenv("AUTH_LOGIN_OAUTH_TOKEN"))
 	if err == nil {
@@ -212,7 +213,10 @@ func TestAuthOAUTH(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := client.Auth(ctx, appData, values, os.Getenv("AUTH_OAUTH_EMAIL"), os.Getenv("AUTH_OAUTH_MASTER_TOKEN"))
 	if err == nil {
@@ -240,7 +244,10 @@ func TestNotify(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := client.NotifyInstallation(ctx, appData)
 	if err == nil {
@@ -271,7 +278,10 @@ func TestVerifyPassword(t *testing.T) {
 		password = os.Getenv("VERIFY_PASSWORD_PASSWORD")
 	)
 	ctx := context.Background()
-	client := NewFirebaseClient(hClient, device)
+	client, err := NewFirebaseClient(hClient, device)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	req := &firebase_api.VerifyPasswordRequestBody{
 		Email:             email,
@@ -316,7 +326,10 @@ func TestRegister3(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient := NewFirebaseClient(hClient, fDevice)
+	fClient, err := NewFirebaseClient(hClient, fDevice)
+	if err != nil {
+		t.Fatal(err)
+	}
 	authResult, err := fClient.NotifyInstallation(ctx, appData)
 	if err != nil {
 		t.Error(err)
@@ -374,7 +387,10 @@ func TestNativePushNotifications(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient := NewFirebaseClient(hClient, fDevice)
+	fClient, err := NewFirebaseClient(hClient, fDevice)
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, err = fClient.NotifyInstallation(ctx, appData)
 	if err != nil {
 		t.Error(err)
@@ -443,7 +459,10 @@ func TestWebPushNotifications(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient := NewFirebaseClient(hClient, fDevice)
+	fClient, err := NewFirebaseClient(hClient, fDevice)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	checkinResult, err := fClient.Checkin(ctx, appData, "", "")
 	if err != nil {
@@ -456,34 +475,6 @@ func TestWebPushNotifications(t *testing.T) {
 	uuidStr := strings.ToUpper(uuid.New().String())
 	subType := "https://push.foo/#" + uuidStr[:len(uuidStr)-3]
 	appid := "f1pdRYedASE" // TODO: IDK where this one comes from
-
-	authNonceBytes := make([]byte, 16)
-	_, err = rand.Read(authNonceBytes)
-	if err != nil {
-		log.Fatalf("Failed to generate random bytes: %v", err)
-	}
-
-	curve := ecdh.P256()
-	privateKey, err := curve.GenerateKey(rand.Reader)
-	if err != nil {
-		log.Fatalf("Failed to generate key pair: %v", err)
-	}
-	publicKey := privateKey.PublicKey()
-	publicKeyStr := base64.RawURLEncoding.EncodeToString(publicKey.Bytes())
-	fmt.Printf("My Public Key (base64): %s\n", publicKeyStr)
-	// remotePubKeyBytes, err := base64.RawURLEncoding.DecodeString(sender)
-	// if err != nil {
-	// 	log.Fatalf("Failed to decode remote public key: %v", err)
-	// }
-	// remotePubKey, err := curve.NewPublicKey(remotePubKeyBytes)
-	// if err != nil {
-	// 	log.Fatalf("Failed to parse remote public key: %v", err)
-	// }
-	// // 3. Perform ECDH to compute the shared secret.
-	// sharedSecret, err := privateKey.ECDH(remotePubKey)
-	// if err != nil {
-	// 	log.Fatalf("ECDH key agreement error: %v", err)
-	// }
 
 	result, err := fClient.C2DMRegisterWeb(ctx, appData, sender, subType, appid)
 	if err != nil {
@@ -505,7 +496,7 @@ func TestWebPushNotifications(t *testing.T) {
 		resultChan <- notification
 	}
 	pre := time.Now()
-	err = sendNotificationWeb(hClient, result, publicKeyStr, base64.RawURLEncoding.EncodeToString(authNonceBytes))
+	err = sendNotificationWeb(hClient, result, fDevice.MTalkPublicKey, fDevice.MTalkAuthSecret)
 	if err != nil {
 		t.Error(err)
 	}
@@ -580,3 +571,7 @@ func getNotificationDataWeb() string {
 	// Return publicKey (sender)
 	return "BDweuGCGNzjleeyQYPvtFLEbMG4BX9rc_M9Abtx16NvaR_Jpo5i08WAJUll2Hn6ZiErbSjkzxWdpKjus_qO2cMw"
 }
+
+// TODO: Write unittests with this:
+// https://tests.peter.sh/push-message-generator/
+// https://github.com/beverloo/peter.sh/tree/master/tests

@@ -1,17 +1,23 @@
 package firebase_client
 
 import (
+	"crypto/ecdh"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
 	"github.com/BRUHItsABunny/go-android-firebase/constants"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/xakep666/ecego"
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 	"io"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -28,15 +34,67 @@ type MTalkCon struct {
 	streamId         int
 	stop             *atomic.Bool
 	Device           *firebase_api.FirebaseDevice
+	ECEEngine        *ecego.Engine
 }
 
 const MTalkVersion = byte(41)
 
-func NewMTalkCon(device *firebase_api.FirebaseDevice) *MTalkCon {
+var (
+	mapEncryptionSchemes = map[string]ecego.Version{
+		string(ecego.AES128GCM): ecego.AES128GCM,
+		string(ecego.AESGCM):    ecego.AESGCM,
+		string(ecego.AESGCM128): ecego.AESGCM128,
+	}
+)
+
+func NewMTalkCon(device *firebase_api.FirebaseDevice) (*MTalkCon, error) {
 	result := &MTalkCon{stop: atomic.NewBool(false), Device: device}
 	result.OnMessage = result.defaultOnMessage
 	result.OnNotification = result.defaultOnNotification
-	return result
+
+	var (
+		authSecret = make([]byte, 16)
+		privateKey *ecdh.PrivateKey
+		err        error
+	)
+	if device.MTalkAuthSecret != "" {
+		authSecret, err = base64.RawURLEncoding.DecodeString(device.MTalkAuthSecret)
+		if err != nil {
+			err = fmt.Errorf("base64.RawURLEncoding.DecodeString[authSecret]: %w", err)
+			return nil, err
+		}
+	} else {
+		_, err = rand.Read(authSecret)
+		if err != nil {
+			err = fmt.Errorf("rand.Read[authSecret]: %w", err)
+			return nil, err
+		}
+		device.MTalkAuthSecret = base64.RawURLEncoding.EncodeToString(authSecret)
+	}
+	if device.MTalkPrivateKey != "" {
+		privateKeyBytes, err := base64.RawURLEncoding.DecodeString(device.MTalkAuthSecret)
+		if err != nil {
+			err = fmt.Errorf("base64.RawURLEncoding.DecodeString[privateKey]: %w", err)
+			return nil, err
+		}
+		privateKey, err = ecdh.P256().NewPrivateKey(privateKeyBytes)
+		if err != nil {
+			err = fmt.Errorf("ecdh.P256().NewPrivateKey: %w", err)
+			return nil, err
+		}
+		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
+	} else {
+		privateKey, err = ecdh.P256().GenerateKey(rand.Reader)
+		if err != nil {
+			err = fmt.Errorf("ecdh.P256().GenerateKey: %w", err)
+			return nil, err
+		}
+		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.Bytes())
+		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
+	}
+
+	result.ECEEngine = ecego.NewEngine(ecego.SingleKey(privateKey), ecego.WithAuthSecret(authSecret))
+	return result, nil
 }
 
 func (c *MTalkCon) Connect() error {
@@ -119,6 +177,72 @@ func (c *MTalkCon) defaultOnMessage(msg proto.Message) {
 		if parsedMsg.PersistentId != nil {
 			c.Device.MTalkLastPersistentId = *parsedMsg.PersistentId
 		}
+
+		// What encryption scheme is it using
+		var err error
+		encryptionParams := ecego.OperationalParams{}
+		parsedAppData := map[string]string{}
+		for _, appData := range parsedMsg.AppData {
+			key := strings.ToLower(appData.GetKey())
+			parsedAppData[key] = appData.GetValue()
+			if key == "content-encoding" {
+				encryptionParams.Version, _ = mapEncryptionSchemes[appData.GetValue()]
+			}
+		}
+		// Parse params for scheme
+		switch encryptionParams.Version {
+		case ecego.AESGCM128:
+			fallthrough
+		case ecego.AESGCM:
+			encryptionAppData, ok := parsedAppData["encryption"]
+			if ok {
+				encryptionAppDataDecoded := parseAppDataValue(encryptionAppData)
+				saltStr, ok := encryptionAppDataDecoded["salt"]
+				if ok {
+					encryptionParams.Salt, err = base64.RawURLEncoding.DecodeString(saltStr)
+					if err != nil {
+						err = fmt.Errorf("base64.RawURLEncoding.DecodeString[%s:salt]: %w", string(encryptionParams.Version), err)
+						panic(err)
+					}
+				}
+			}
+			cryptoKeyAppData, ok := parsedAppData["crypto-key"]
+			if ok {
+				cryptoKeyAppDataDecoded := parseAppDataValue(cryptoKeyAppData)
+				dhStr, ok := cryptoKeyAppDataDecoded["dh"]
+				if ok {
+					encryptionParams.DH, err = base64.RawURLEncoding.DecodeString(dhStr)
+					if err != nil {
+						err = fmt.Errorf("base64.RawURLEncoding.DecodeString[%s:dh]: %w", string(encryptionParams.Version), err)
+						panic(err)
+					}
+				}
+			}
+
+			parsedRawData := map[string]string{}
+			err = json.Unmarshal(parsedMsg.RawData, &parsedRawData)
+			if err == nil {
+				rawData, ok := parsedRawData["raw_data"]
+				if ok {
+					rawDataBytes, err := base64.StdEncoding.DecodeString(rawData)
+					if err != nil {
+						parsedMsg.RawData = rawDataBytes
+					}
+				}
+			}
+			break
+		}
+
+		// Decrypt and replace raw data
+		if encryptionParams.Version != "" {
+			plaintext, err := c.ECEEngine.Decrypt(parsedMsg.RawData, nil, encryptionParams)
+			if err != nil {
+				err = fmt.Errorf("c.ECEEngine.Decrypt[%s]: %w", string(encryptionParams.Version), err)
+				panic(err)
+			}
+			parsedMsg.RawData = plaintext
+		}
+
 		c.OnNotification(parsedMsg)
 		break
 	}
@@ -167,7 +291,6 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	default:
 		return nil, fmt.Errorf("unknown tag: %d", tag)
 	}
-	fmt.Println(tag, length, string(data))
 	err = proto.Unmarshal(data, result)
 	if err != nil {
 		return nil, fmt.Errorf("proto.Unmarshal[%x]: %w", data, err)
@@ -230,7 +353,7 @@ func (c *MTalkCon) login() error {
 			Name:  proto.String("networkOn"),
 			Value: proto.String("0"),
 		}},
-		ReceivedPersistentId: []string{c.lastPersistentId},
+		ReceivedPersistentId: []string{c.Device.MTalkLastPersistentId},
 		AdaptiveHeartbeat:    proto.Bool(false),
 		UseRmq2:              proto.Bool(true),
 		AuthService:          &authSvc,
@@ -311,4 +434,22 @@ func (c *MTalkCon) writeBytes(data []byte) error {
 
 func (c *MTalkCon) writeByte(data byte) error {
 	return c.writeBytes([]byte{data})
+}
+
+func parseAppDataValue(value string) map[string]string {
+	result := make(map[string]string)
+	pairs := strings.Split(value, ";")
+	for _, pair := range pairs {
+		if pair == "" {
+			continue
+		}
+
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) == 2 {
+			key := kv[0]
+			val := kv[1]
+			result[key] = val
+		}
+	}
+	return result
 }

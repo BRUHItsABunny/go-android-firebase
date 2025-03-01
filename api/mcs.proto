@@ -8,7 +8,7 @@
 // Server .
 syntax = "proto2";
 option java_package = "org.microg.gms.gcm.mcs";
-option go_package = "github.com/BRUHItsABunny/go-android-firebase/api";
+option go_package = "github.com/BRUHItsABunny/go-android-firebase/firebase_api";
 
 enum MCSTag {
    MCS_HEARTBEAT_PING_TAG = 0;

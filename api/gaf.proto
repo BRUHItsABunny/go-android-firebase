@@ -1,6 +1,6 @@
 syntax = "proto3";
 package android_firebase;
-option go_package = "github.com/BRUHItsABunny/go-android-firebase/api";
+option go_package = "github.com/BRUHItsABunny/go-android-firebase/firebase_api";
 
 import "google/protobuf/timestamp.proto";
 import "android_proto.proto";
@@ -50,5 +50,8 @@ message FirebaseDevice {
   string mTalkLastPersistentId = 5;
   string firebaseClientVersion = 6;
   string gmsVersion = 7;
+  string mTalkPrivateKey = 8;
+  string mTalkPublicKey = 9;
+  string mTalkAuthSecret = 10;
 }
 

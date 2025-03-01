@@ -2,7 +2,7 @@ syntax = "proto2";
 option java_package = "org.microg.gms.checkin";
 
 option java_outer_classname = "CheckinProto";
-option go_package = "github.com/BRUHItsABunny/go-android-firebase/api";
+option go_package = "github.com/BRUHItsABunny/go-android-firebase/firebase_api";
 
 // Sample data, if provided, is fished from a Nexus 7 (2013) / flo running Android 5.0
 message CheckinRequest {

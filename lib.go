@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func NewFirebaseClient(hClient *http.Client, device *firebase_api.FirebaseDevice) *firebase_client.FireBaseClient {
+func NewFirebaseClient(hClient *http.Client, device *firebase_api.FirebaseDevice) (*firebase_client.FireBaseClient, error) {
 	return firebase_client.NewFirebaseClient(hClient, device)
 }
 

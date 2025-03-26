@@ -4,7 +4,7 @@ go 1.23.0
 
 toolchain go1.23.4
 
-replace github.com/xakep666/ecego => ../ecego
+replace github.com/xakep666/ecego => github.com/BRUHItsABunny/ecego v0.0.0-20250226013222-5525417d6439
 
 require (
 	github.com/BRUHItsABunny/gOkHttp v0.3.7

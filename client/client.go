@@ -3,22 +3,27 @@ package firebase_client
 import (
 	"context"
 	"fmt"
-	firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
-	andutils "github.com/BRUHItsABunny/go-android-utils"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
+	andutils "github.com/BRUHItsABunny/go-android-utils"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type FireBaseClient struct {
-	Client *http.Client
+	Client HTTPClient
 	Device *firebase_api.FirebaseDevice
 	MTalk  *MTalkCon
 }
 
-func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice) (*FireBaseClient, error) {
+func NewFirebaseClient(client HTTPClient, device *firebase_api.FirebaseDevice) (*FireBaseClient, error) {
 	if client == nil {
 		client = http.DefaultClient
 	}

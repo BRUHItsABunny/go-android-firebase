@@ -12,10 +12,12 @@ This library is currently able to do the following things:
 * Emulate an installation callback
 * Authenticate and register users to Firebase authentication
 * Get a notification token
-* Being able to listen for push notifications (android apps only)
-
-In the future I hope to add the following features:
+* Being able to listen for push notifications (android apps)
 * Being able to listen for push notifications (chromium web push)
+* Google OAuth to log in with Google in Android apps.
+
+In the future I hope to add the following:
+* Cleaner codebase with more testing
 
 ### Examples
 

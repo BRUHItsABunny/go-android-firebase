@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/BRUHItsABunny/gOkHttp/requests"
-	. "github.com/BRUHItsABunny/go-android-firebase/constants"
-	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/BRUHItsABunny/gOkHttp/requests"
+	. "github.com/BRUHItsABunny/go-android-firebase/constants"
+	andutils "github.com/BRUHItsABunny/go-android-utils"
 )
 
 func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData) (*http.Request, error) {
@@ -122,20 +123,22 @@ func AuthRequest(ctx context.Context, device *andutils.Device, appData *Firebase
 	data["device_country"] = []string{device.Locale.GetCountry(false)}
 	data["sdk_version"] = []string{device.Version.ToAndroidSDK()}
 
-	if appData != nil {
-		if appData.PackageID != "" {
-			data["callerPkg"] = []string{appData.PackageID}
-			data["app"] = []string{appData.PackageID}
-		}
-		if appData.PackageCertificate != "" {
-			data["callerSig"] = []string{strings.ToLower(appData.PackageCertificate)}
-			data["client_sig"] = []string{strings.ToLower(appData.PackageCertificate)}
-		}
+	if appData == nil {
+		return nil, errors.New("appData is nil")
 	}
 
-	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointRefreshSecureToken,
-		gokhttp_requests.NewPOSTFormOption(data),
+	if appData.PackageID != "" {
+		data["callerPkg"] = []string{appData.PackageID}
+		data["app"] = []string{appData.PackageID}
+	}
+	if appData.PackageCertificate != "" {
+		data["callerSig"] = []string{strings.ToLower(appData.PackageCertificate)}
+		data["client_sig"] = []string{strings.ToLower(appData.PackageCertificate)}
+	}
+
+	req, err := gokhttp_requests.MakePOSTRequest(ctx, EndpointAuth,
 		gokhttp_requests.NewHeaderOption(DefaultHeadersAuth(device)),
+		gokhttp_requests.NewPOSTFormOption(data),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("requests.MakePOSTRequest: %w", err)

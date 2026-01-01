@@ -4,14 +4,15 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	. "github.com/BRUHItsABunny/go-android-firebase/constants"
-	andutils "github.com/BRUHItsABunny/go-android-utils"
-	"github.com/google/uuid"
 	"math/big"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
+
+	. "github.com/BRUHItsABunny/go-android-firebase/constants"
+	andutils "github.com/BRUHItsABunny/go-android-utils"
+	"github.com/google/uuid"
 )
 
 func DefaultHeadersFirebase(device *FirebaseDevice, appData *FirebaseAppData, includeAPIKey, includeFireBaseClient, includeClientVersion bool) http.Header {

@@ -212,6 +212,9 @@ func AuthResult(resp *http.Response) (*AuthResponse, error) {
 func ParseAuthResponse(body []byte, statusCode int) (*AuthResponse, error) {
 	fields := ParseKeyValueBody(body)
 	if len(fields) == 0 {
+		if statusCode != http.StatusOK {
+			return nil, fmt.Errorf("firebase: auth failed with HTTP %d: %s", statusCode, truncate(string(body)))
+		}
 		return nil, ErrEmptyResponse
 	}
 

@@ -410,6 +410,15 @@ func (c *FireBaseClient) RegisterForNotifications(ctx context.Context, appData *
 		if !firebase_api.IsRetryable(err) {
 			return "", err
 		}
+
+		// Rejected credentials will keep being rejected, a fresh check-in is the only
+		// thing that can turn this attempt into a successful one.
+		registerErr := new(firebase_api.RegisterError)
+		if errors.As(err, &registerErr) && registerErr.Code == firebase_api.RegisterErrorAuthentication {
+			if _, checkinErr := c.Checkin(ctx, appData, "", ""); checkinErr != nil {
+				return "", fmt.Errorf("c.Checkin (after %w): %w", err, checkinErr)
+			}
+		}
 	}
 	return "", fmt.Errorf("registration failed after %d attempt(s): %w", opts.Retries+1, lastErr)
 }

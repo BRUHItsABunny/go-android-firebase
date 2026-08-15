@@ -280,6 +280,11 @@ func (c *MTalkCon) Close() error {
 // Errors are reported through OnError, this used to panic and take the whole process down.
 func (c *MTalkCon) loop() {
 	defer func() {
+		// Close the socket here too, the loop also ends when the peer hangs up or a
+		// message fails to parse, and nobody else would clean it up in those cases.
+		if c.RawConn != nil {
+			_ = c.RawConn.Close()
+		}
 		c.connected.Store(false)
 		close(c.closed)
 		c.WaitGroup.Done()

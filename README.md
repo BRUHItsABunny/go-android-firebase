@@ -19,6 +19,61 @@ This library is currently able to do the following things:
 In the future I hope to add the following:
 * Cleaner codebase with more testing
 
+### Quick start
+
+```go
+ctx := context.Background()
+
+// nil HTTP client -> a default client with a timeout, nil device -> a random device
+client, err := firebase.NewFirebaseClient(nil, nil)
+if err != nil {
+    log.Fatal(err)
+}
+defer client.Close()
+
+// One call instead of NotifyInstallation + Checkin + C2DMRegisterAndroid with sleeps
+// in between. Transient failures (PHONE_REGISTRATION_ERROR right after a check-in) are
+// retried with a backoff.
+token, err := client.RegisterForNotifications(ctx, appData, nil)
+if err != nil {
+    log.Fatal(err)
+}
+
+client.MTalk.OnNotification = func(notification *firebase_api.DataMessageStanza) {
+    fmt.Println(string(notification.RawData))
+}
+client.MTalk.OnError = func(err error, fatal bool) {
+    log.Printf("mtalk: %v (fatal=%t)", err, fatal)
+}
+if err = client.MTalk.Connect(); err != nil {
+    log.Fatal(err)
+}
+
+<-client.MTalk.Closed() // the read loop stopped, client.MTalk.Err() says why
+```
+
+`client.Device` is a protobuf message, so it can be marshalled and stored to keep the same
+virtual device (check-in credentials, installation IDs, push keys) across restarts.
+
+### Error handling
+
+Every call returns typed errors that can be inspected with `errors.Is` / `errors.As`:
+
+| Error | Meaning |
+| --- | --- |
+| `firebase.ErrNilAppData`, `firebase.ErrNilDevice` | a required argument was nil |
+| `*firebase_api.MissingFieldError` | the app data or device is missing fields the call needs, the error names them |
+| `firebase.ErrNoCheckin` | `Checkin` has not run yet |
+| `firebase.ErrNoInstallation`, `firebase.ErrNoInstallationAuth` | `NotifyInstallation` has not run yet (or its token expired) |
+| `*firebase_api.RegisterError` | GCM refused the registration, e.g. `PHONE_REGISTRATION_ERROR` |
+| `*firebase_api.AuthError` | the Google auth endpoint refused the login, e.g. `BadAuthentication` |
+| `*firebase_api.GoogleAPIError`, `*firebase_api.HTTPError` | the endpoint answered with an error, body included |
+
+`firebase.IsRetryable(err)` reports whether waiting and trying again is worthwhile
+(propagation delays right after a check-in, 429s, 5xx). Note that the registration
+endpoints answer with HTTP 200 even when they refuse the request, so checking the status
+code is not enough - this library parses the body and reports the actual reason.
+
 ### Examples
 
 Some examples can be found in the ``_examples`` directory. They will go over the basics of how to interact with this library.

@@ -334,6 +334,9 @@ type SignUpNewUserRequestBody struct {
 	Password string `json:"password"`
 }
 
+// GrantTypeRefreshToken is the only grant type the securetoken endpoint accepts here.
+const GrantTypeRefreshToken = "refresh_token"
+
 type RefreshSecureTokenRequestBody struct {
 	GrantType    string `json:"grantType"`
 	RefreshToken string `json:"refreshToken"`

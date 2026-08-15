@@ -1,6 +1,8 @@
 package firebase_client
 
 import (
+	"bufio"
+	"context"
 	"crypto/ecdh"
 	"crypto/rand"
 	"crypto/tls"
@@ -13,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/BRUHItsABunny/ecego"
 	firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
@@ -25,20 +28,44 @@ import (
 type MTalkMessageProcessor func(message proto.Message)
 type MTalkNotificationProcessor func(notification *firebase_api.DataMessageStanza)
 
+// MTalkErrorProcessor is called for every error the background read loop runs into.
+// Errors that ended the loop are reported with fatal set to true.
+type MTalkErrorProcessor func(err error, fatal bool)
+
 type MTalkCon struct {
 	RawConn net.Conn
 	sync.WaitGroup
-	OnMessage        MTalkMessageProcessor
-	OnNotification   MTalkNotificationProcessor
-	lastPersistentId string
+	OnMessage      MTalkMessageProcessor
+	OnNotification MTalkNotificationProcessor
+	// OnError receives read-loop errors. The default implementation stores the error so it
+	// can be retrieved with Err(), previous versions of this library panicked instead.
+	OnError MTalkErrorProcessor
+	// Debug makes the default notification handler dump every notification to stdout.
+	Debug bool
+
 	streamIdReported int
 	streamId         int
 	stop             *atomic.Bool
+	connected        *atomic.Bool
 	Device           *firebase_api.FirebaseDevice
 	ECEEngine        *ecego.Engine
+
+	reader   *bufio.Reader
+	writeMux sync.Mutex
+
+	errMux  sync.Mutex
+	lastErr error
+	closed  chan struct{}
 }
 
 const MTalkVersion = byte(41)
+
+// DefaultMTalkDialTimeout bounds the TLS handshake with mtalk.google.com.
+const DefaultMTalkDialTimeout = 30 * time.Second
+
+// mtalkReadBufferSize keeps the per-message reads out of the syscall path, the protocol is
+// parsed one byte at a time so an unbuffered connection meant a syscall per byte.
+const mtalkReadBufferSize = 32 * 1024
 
 var (
 	mapEncryptionSchemes = map[string]ecego.Version{
@@ -49,113 +76,263 @@ var (
 )
 
 func NewMTalkCon(device *firebase_api.FirebaseDevice) (*MTalkCon, error) {
-	result := &MTalkCon{stop: atomic.NewBool(false), Device: device}
+	if device == nil {
+		return nil, firebase_api.ErrNilDevice
+	}
+
+	result := &MTalkCon{
+		stop:      atomic.NewBool(false),
+		connected: atomic.NewBool(false),
+		Device:    device,
+		closed:    make(chan struct{}),
+	}
 	result.OnMessage = result.defaultOnMessage
 	result.OnNotification = result.defaultOnNotification
+	result.OnError = result.defaultOnError
 
-	var (
-		authSecret = make([]byte, 16)
-		privateKey *ecdh.PrivateKey
-		err        error
-	)
-	if device.MTalkAuthSecret != "" {
-		authSecret, err = base64.RawURLEncoding.DecodeString(device.MTalkAuthSecret)
-		if err != nil {
-			err = fmt.Errorf("base64.RawURLEncoding.DecodeString[authSecret]: %w", err)
-			return nil, err
-		}
-	} else {
-		_, err = rand.Read(authSecret)
-		if err != nil {
-			err = fmt.Errorf("rand.Read[authSecret]: %w", err)
-			return nil, err
-		}
-		device.MTalkAuthSecret = base64.RawURLEncoding.EncodeToString(authSecret)
+	authSecret, err := loadOrCreateAuthSecret(device)
+	if err != nil {
+		return nil, err
 	}
-	if device.MTalkPrivateKey != "" {
-		privateKeyBytes, err := base64.RawURLEncoding.DecodeString(device.MTalkAuthSecret)
-		if err != nil {
-			err = fmt.Errorf("base64.RawURLEncoding.DecodeString[privateKey]: %w", err)
-			return nil, err
-		}
-		privateKey, err = ecdh.P256().NewPrivateKey(privateKeyBytes)
-		if err != nil {
-			err = fmt.Errorf("ecdh.P256().NewPrivateKey: %w", err)
-			return nil, err
-		}
-		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
-	} else {
-		privateKey, err = ecdh.P256().GenerateKey(rand.Reader)
-		if err != nil {
-			err = fmt.Errorf("ecdh.P256().GenerateKey: %w", err)
-			return nil, err
-		}
-		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.Bytes())
-		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
+	privateKey, err := loadOrCreatePrivateKey(device)
+	if err != nil {
+		return nil, err
 	}
 
 	result.ECEEngine = ecego.NewEngine(ecego.SingleKey(privateKey), ecego.WithAuthSecret(authSecret))
 	return result, nil
 }
 
-func (c *MTalkCon) Connect() error {
-	// Connect
-	connV2, err := tls.Dial("tcp", fmt.Sprintf("%s:%s", constants.MTalkHost, constants.MTalkPort), nil)
-	if err != nil {
-		return fmt.Errorf("tls.Dial: %w", err)
+// loadOrCreateAuthSecret restores the web push auth secret from the device, generating a
+// new one when the device does not carry one yet.
+func loadOrCreateAuthSecret(device *firebase_api.FirebaseDevice) ([]byte, error) {
+	if device.MTalkAuthSecret != "" {
+		authSecret, err := base64.RawURLEncoding.DecodeString(device.MTalkAuthSecret)
+		if err != nil {
+			return nil, fmt.Errorf("base64.RawURLEncoding.DecodeString[authSecret]: %w", err)
+		}
+		return authSecret, nil
 	}
-	c.RawConn = connV2
 
-	// login
-	err = c.writeByte(MTalkVersion) // Write version first
+	authSecret := make([]byte, 16)
+	if _, err := rand.Read(authSecret); err != nil {
+		return nil, fmt.Errorf("rand.Read[authSecret]: %w", err)
+	}
+	device.MTalkAuthSecret = base64.RawURLEncoding.EncodeToString(authSecret)
+	return authSecret, nil
+}
+
+// loadOrCreatePrivateKey restores the web push key pair from the device, generating a new
+// pair when the device does not carry one yet. Both halves are written back to the device
+// so that a persisted device keeps receiving encrypted notifications after a restart.
+func loadOrCreatePrivateKey(device *firebase_api.FirebaseDevice) (*ecdh.PrivateKey, error) {
+	if device.MTalkPrivateKey != "" {
+		// NOTE: this used to decode MTalkAuthSecret here, which made a persisted key pair
+		// unusable and silently broke decryption of every incoming notification.
+		privateKeyBytes, err := base64.RawURLEncoding.DecodeString(device.MTalkPrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("base64.RawURLEncoding.DecodeString[privateKey]: %w", err)
+		}
+		privateKey, err := ecdh.P256().NewPrivateKey(privateKeyBytes)
+		if err != nil {
+			return nil, fmt.Errorf("ecdh.P256().NewPrivateKey: %w", err)
+		}
+		device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
+		return privateKey, nil
+	}
+
+	privateKey, err := ecdh.P256().GenerateKey(rand.Reader)
 	if err != nil {
+		return nil, fmt.Errorf("ecdh.P256().GenerateKey: %w", err)
+	}
+	device.MTalkPrivateKey = base64.RawURLEncoding.EncodeToString(privateKey.Bytes())
+	device.MTalkPublicKey = base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
+	return privateKey, nil
+}
+
+// Connect dials mtalk.google.com, logs in and starts the background read loop.
+func (c *MTalkCon) Connect() error {
+	return c.ConnectContext(context.Background())
+}
+
+// ConnectContext is Connect with a caller controlled deadline for dialling and logging in.
+func (c *MTalkCon) ConnectContext(ctx context.Context) error {
+	if c.connected.Load() {
+		return firebase_api.ErrAlreadyConnected
+	}
+	if err := c.Device.ValidateForCheckinScopedCall(); err != nil {
+		return err
+	}
+
+	dialer := &tls.Dialer{NetDialer: &net.Dialer{Timeout: DefaultMTalkDialTimeout}}
+	address := net.JoinHostPort(constants.MTalkHost, constants.MTalkPort)
+	conn, err := dialer.DialContext(ctx, "tcp", address)
+	if err != nil {
+		return fmt.Errorf("tls.Dial[%s]: %w", address, err)
+	}
+
+	c.RawConn = conn
+	c.reader = bufio.NewReaderSize(conn, mtalkReadBufferSize)
+	c.stop.Store(false)
+	c.setErr(nil)
+	c.closed = make(chan struct{})
+
+	if deadline, ok := ctx.Deadline(); ok {
+		_ = conn.SetDeadline(deadline)
+	}
+
+	if err = c.handshake(); err != nil {
+		_ = conn.Close()
+		c.reader = nil
+		c.RawConn = nil
+		return err
+	}
+
+	// Clear the handshake deadline, the loop below blocks until a message arrives.
+	_ = conn.SetDeadline(time.Time{})
+	c.connected.Store(true)
+
+	c.Add(1)
+	go c.loop()
+	return nil
+}
+
+// handshake writes the login request and validates the login response.
+func (c *MTalkCon) handshake() error {
+	if err := c.writeByte(MTalkVersion); err != nil { // Write version first
 		return fmt.Errorf("c.writeByte[version]: %w", err)
 	}
-
-	err = c.login()
-	if err != nil {
-		return fmt.Errorf("result.login: %w", err)
+	if err := c.login(); err != nil {
+		return fmt.Errorf("c.login: %w", err)
 	}
 
 	version, err := c.readByte() // read version
 	if err != nil {
 		return fmt.Errorf("c.readByte[version]: %w", err)
 	}
-
 	if version != MTalkVersion {
-		return errors.New("mtalk version not consistent")
+		return fmt.Errorf("mtalk version not consistent: got %d, want %d", version, MTalkVersion)
 	}
-	// fmt.Println(fmt.Sprintf("version: %d", version))
 
 	loginResp, err := c.readMessage()
 	if err != nil {
-		return fmt.Errorf("result.readMessage: %w", err)
+		return fmt.Errorf("c.readMessage: %w", err)
 	}
 	loginRespParsed, ok := loginResp.(*firebase_api.LoginResponse)
 	if !ok {
-		return errors.New("didn't receive login response")
+		if closeMsg, isClose := loginResp.(*firebase_api.Close); isClose {
+			return fmt.Errorf("mtalk closed the connection during login: %s", closeMsg.String())
+		}
+		return fmt.Errorf("didn't receive login response, got %T", loginResp)
 	}
 	if loginRespParsed.Error != nil {
-		return errors.New(*loginRespParsed.Error.Message)
+		return fmt.Errorf("mtalk login rejected: %s (code %d)",
+			loginRespParsed.Error.GetMessage(), loginRespParsed.Error.GetCode())
 	}
-	// Start goroutine to read in background and notify us?
-	c.Add(1)
-	go c.loop()
 	return nil
 }
 
+// Connected reports whether the read loop is running.
+func (c *MTalkCon) Connected() bool {
+	return c.connected.Load()
+}
+
+// Err returns the error that ended the read loop, if any.
+func (c *MTalkCon) Err() error {
+	c.errMux.Lock()
+	defer c.errMux.Unlock()
+	return c.lastErr
+}
+
+func (c *MTalkCon) setErr(err error) {
+	c.errMux.Lock()
+	c.lastErr = err
+	c.errMux.Unlock()
+}
+
+// Closed returns a channel that is closed once the read loop has stopped, which makes it
+// possible to select on a dropped connection instead of polling Connected.
+func (c *MTalkCon) Closed() <-chan struct{} {
+	return c.closed
+}
+
+// Close stops the read loop and closes the connection. It is safe to call more than once,
+// a second call reports ErrNotConnected. It waits for the read loop to finish, so do not
+// call it from inside OnMessage/OnNotification, those run on that very loop.
+func (c *MTalkCon) Close() error {
+	if !c.connected.Load() {
+		return firebase_api.ErrNotConnected
+	}
+	c.stop.Store(true)
+
+	var err error
+	if c.RawConn != nil {
+		// Closing unblocks the read loop, which then exits and marks us disconnected.
+		if closeErr := c.RawConn.Close(); closeErr != nil && !errors.Is(closeErr, net.ErrClosed) {
+			err = fmt.Errorf("c.RawConn.Close: %w", closeErr)
+		}
+	}
+	c.Wait()
+	return err
+}
+
+// loop reads messages until the connection drops or Close is called.
+// Errors are reported through OnError, this used to panic and take the whole process down.
 func (c *MTalkCon) loop() {
+	defer func() {
+		c.connected.Store(false)
+		close(c.closed)
+		c.WaitGroup.Done()
+	}()
+
 	for {
 		msg, err := c.readMessage()
 		if err != nil {
-			panic(err)
+			if c.stop.Load() || errors.Is(err, net.ErrClosed) || errors.Is(err, io.EOF) {
+				// Expected when Close was called or the peer hung up.
+				if !c.stop.Load() {
+					c.reportError(fmt.Errorf("mtalk connection lost: %w", err), true)
+				}
+				return
+			}
+			c.reportError(fmt.Errorf("c.readMessage: %w", err), true)
+			return
 		}
-		c.OnMessage(msg)
+
+		c.dispatch(msg)
+
 		if c.stop.Load() {
-			break
+			return
 		}
 	}
-	c.Done()
+}
+
+// dispatch hands a message to the user's handler, containing panics so that one bad
+// handler cannot take the read loop (or the process) with it.
+func (c *MTalkCon) dispatch(msg proto.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			c.reportError(fmt.Errorf("panic in message handler: %v", r), false)
+		}
+	}()
+	if c.OnMessage != nil {
+		c.OnMessage(msg)
+	}
+}
+
+func (c *MTalkCon) reportError(err error, fatal bool) {
+	if fatal {
+		c.setErr(err)
+	}
+	if c.OnError != nil {
+		c.OnError(err, fatal)
+	}
+}
+
+func (c *MTalkCon) defaultOnError(err error, fatal bool) {
+	if c.Debug {
+		fmt.Printf("mtalk error (fatal=%t): %v\n", fatal, err)
+	}
 }
 
 func (c *MTalkCon) defaultOnMessage(msg proto.Message) {
@@ -168,89 +345,93 @@ func (c *MTalkCon) defaultOnMessage(msg proto.Message) {
 			c.streamIdReported = c.streamId
 			response.LastStreamIdReceived = proto.Int32(int32(c.streamIdReported))
 		}
-		err := c.writeMessage(firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG, response)
-		if err != nil {
-			err = fmt.Errorf("c.writeMessage[PingAck]: %w", err)
-			panic(err)
+		if err := c.writeMessage(firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG, response); err != nil {
+			c.reportError(fmt.Errorf("c.writeMessage[PingAck]: %w", err), false)
 		}
-		break
+	case *firebase_api.Close:
+		c.reportError(errors.New("mtalk sent a close stanza"), false)
 	case *firebase_api.DataMessageStanza:
-		if parsedMsg.PersistentId != nil {
-			c.Device.MTalkLastPersistentId = *parsedMsg.PersistentId
-		}
-
-		// What encryption scheme is it using
-		var err error
-		encryptionParams := ecego.OperationalParams{}
-		parsedAppData := map[string]string{}
-		for _, appData := range parsedMsg.AppData {
-			key := strings.ToLower(appData.GetKey())
-			parsedAppData[key] = appData.GetValue()
-			if key == "content-encoding" {
-				encryptionParams.Version, _ = mapEncryptionSchemes[appData.GetValue()]
-			}
-		}
-		// Parse params for scheme
-		switch encryptionParams.Version {
-		case ecego.AESGCM128:
-			fallthrough
-		case ecego.AESGCM:
-			encryptionAppData, ok := parsedAppData["encryption"]
-			if ok {
-				encryptionAppDataDecoded := parseAppDataValue(encryptionAppData)
-				saltStr, ok := encryptionAppDataDecoded["salt"]
-				if ok {
-					encryptionParams.Salt, err = base64.RawURLEncoding.DecodeString(saltStr)
-					if err != nil {
-						err = fmt.Errorf("base64.RawURLEncoding.DecodeString[%s:salt]: %w", string(encryptionParams.Version), err)
-						panic(err)
-					}
-				}
-			}
-			cryptoKeyAppData, ok := parsedAppData["crypto-key"]
-			if ok {
-				cryptoKeyAppDataDecoded := parseAppDataValue(cryptoKeyAppData)
-				dhStr, ok := cryptoKeyAppDataDecoded["dh"]
-				if ok {
-					encryptionParams.DH, err = base64.RawURLEncoding.DecodeString(dhStr)
-					if err != nil {
-						err = fmt.Errorf("base64.RawURLEncoding.DecodeString[%s:dh]: %w", string(encryptionParams.Version), err)
-						panic(err)
-					}
-				}
-			}
-
-			parsedRawData := map[string]string{}
-			err = json.Unmarshal(parsedMsg.RawData, &parsedRawData)
-			if err == nil {
-				rawData, ok := parsedRawData["raw_data"]
-				if ok {
-					rawDataBytes, err := base64.StdEncoding.DecodeString(rawData)
-					if err != nil {
-						parsedMsg.RawData = rawDataBytes
-					}
-				}
-			}
-			break
-		}
-
-		// Decrypt and replace raw data
-		if encryptionParams.Version != "" {
-			plaintext, err := c.ECEEngine.Decrypt(parsedMsg.RawData, nil, encryptionParams)
-			if err != nil {
-				err = fmt.Errorf("c.ECEEngine.Decrypt[%s]: %w", string(encryptionParams.Version), err)
-				panic(err)
-			}
-			parsedMsg.RawData = plaintext
-		}
-
-		c.OnNotification(parsedMsg)
-		break
+		c.handleDataMessage(parsedMsg)
 	}
 }
 
+// handleDataMessage decrypts a notification (when it is encrypted) and forwards it.
+// A decryption failure is reported through OnError and the message is dropped, previous
+// versions panicked and killed the process on a single malformed notification.
+func (c *MTalkCon) handleDataMessage(parsedMsg *firebase_api.DataMessageStanza) {
+	if parsedMsg.PersistentId != nil {
+		c.Device.MTalkLastPersistentId = *parsedMsg.PersistentId
+	}
+
+	// What encryption scheme is it using
+	encryptionParams := ecego.OperationalParams{}
+	parsedAppData := make(map[string]string, len(parsedMsg.AppData))
+	for _, appData := range parsedMsg.AppData {
+		key := strings.ToLower(appData.GetKey())
+		parsedAppData[key] = appData.GetValue()
+		if key == "content-encoding" {
+			encryptionParams.Version = mapEncryptionSchemes[appData.GetValue()]
+		}
+	}
+
+	// Parse params for scheme
+	switch encryptionParams.Version {
+	case ecego.AESGCM128, ecego.AESGCM:
+		if encryptionAppData, ok := parsedAppData["encryption"]; ok {
+			if saltStr, ok := parseAppDataValue(encryptionAppData)["salt"]; ok {
+				salt, err := base64.RawURLEncoding.DecodeString(saltStr)
+				if err != nil {
+					c.reportError(fmt.Errorf("base64.RawURLEncoding.DecodeString[%s:salt]: %w", encryptionParams.Version, err), false)
+					return
+				}
+				encryptionParams.Salt = salt
+			}
+		}
+		if cryptoKeyAppData, ok := parsedAppData["crypto-key"]; ok {
+			if dhStr, ok := parseAppDataValue(cryptoKeyAppData)["dh"]; ok {
+				dh, err := base64.RawURLEncoding.DecodeString(dhStr)
+				if err != nil {
+					c.reportError(fmt.Errorf("base64.RawURLEncoding.DecodeString[%s:dh]: %w", encryptionParams.Version, err), false)
+					return
+				}
+				encryptionParams.DH = dh
+			}
+		}
+
+		// Some senders wrap the ciphertext in {"raw_data": "<base64>"}.
+		parsedRawData := map[string]string{}
+		if err := json.Unmarshal(parsedMsg.RawData, &parsedRawData); err == nil {
+			if rawData, ok := parsedRawData["raw_data"]; ok {
+				// NOTE: this used to assign the decoded bytes only when decoding *failed*.
+				rawDataBytes, decodeErr := base64.StdEncoding.DecodeString(rawData)
+				if decodeErr == nil {
+					parsedMsg.RawData = rawDataBytes
+				}
+			}
+		}
+	}
+
+	// Decrypt and replace raw data
+	if encryptionParams.Version != "" {
+		plaintext, err := c.ECEEngine.Decrypt(parsedMsg.RawData, nil, encryptionParams)
+		if err != nil {
+			c.reportError(fmt.Errorf("c.ECEEngine.Decrypt[%s]: %w", encryptionParams.Version, err), false)
+			return
+		}
+		parsedMsg.RawData = plaintext
+	}
+
+	if c.OnNotification != nil {
+		c.OnNotification(parsedMsg)
+	}
+}
+
+// defaultOnNotification drops notifications unless Debug is set, in which case it dumps
+// them to stdout. Set OnNotification to consume them.
 func (c *MTalkCon) defaultOnNotification(notification *firebase_api.DataMessageStanza) {
-	fmt.Println(spew.Sdump(notification))
+	if c.Debug {
+		fmt.Println(spew.Sdump(notification))
+	}
 }
 
 func (c *MTalkCon) readMessage() (proto.Message, error) {
@@ -266,70 +447,70 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	if err != nil {
 		return nil, fmt.Errorf("c.readBytes data: %w", err)
 	}
-	var result proto.Message
-	switch firebase_api.MCSTag(int(tag)) {
-	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
-		result = &firebase_api.HeartbeatPing{}
-		break
-	case firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
-		result = &firebase_api.HeartbeatAck{}
-		break
-	case firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG:
-		result = &firebase_api.LoginRequest{}
-		break
-	case firebase_api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
-		result = &firebase_api.LoginResponse{}
-		break
-	case firebase_api.MCSTag_MCS_CLOSE_TAG:
-		result = &firebase_api.Close{}
-		break
-	case firebase_api.MCSTag_MCS_IQ_STANZA_TAG:
-		result = &firebase_api.IqStanza{}
-		break
-	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
-		result = &firebase_api.DataMessageStanza{}
-		break
-	default:
-		return nil, fmt.Errorf("unknown tag: %d", tag)
-	}
-	err = proto.Unmarshal(data, result)
+
+	result, err := newMessageForTag(firebase_api.MCSTag(int(tag)))
 	if err != nil {
+		return nil, err
+	}
+	if err = proto.Unmarshal(data, result); err != nil {
 		return nil, fmt.Errorf("proto.Unmarshal[%x]: %w", data, err)
 	}
 
 	c.streamId++
-	// fmt.Println("IO:IN:\n", spew.Sdump(result))
 	return result, nil
 }
 
+// newMessageForTag returns an empty message of the type the MCS tag denotes.
+func newMessageForTag(tag firebase_api.MCSTag) (proto.Message, error) {
+	switch tag {
+	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
+		return &firebase_api.HeartbeatPing{}, nil
+	case firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
+		return &firebase_api.HeartbeatAck{}, nil
+	case firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG:
+		return &firebase_api.LoginRequest{}, nil
+	case firebase_api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
+		return &firebase_api.LoginResponse{}, nil
+	case firebase_api.MCSTag_MCS_CLOSE_TAG:
+		return &firebase_api.Close{}, nil
+	case firebase_api.MCSTag_MCS_IQ_STANZA_TAG:
+		return &firebase_api.IqStanza{}, nil
+	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
+		return &firebase_api.DataMessageStanza{}, nil
+	}
+	return nil, fmt.Errorf("unknown tag: %d", tag)
+}
+
 func (c *MTalkCon) writeMessage(tag firebase_api.MCSTag, message proto.Message) error {
-	// fmt.Println("IO:OUT:\n", spew.Sdump(message))
 	protoBytes, err := proto.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("proto.Marshal: %w", err)
 	}
-	err = c.writeByte(uint8(tag))
-	if err != nil {
+
+	// One message must reach the wire in one piece, concurrent writers would interleave.
+	c.writeMux.Lock()
+	defer c.writeMux.Unlock()
+
+	if err = c.writeByteLocked(uint8(tag)); err != nil {
 		return fmt.Errorf("c.writeByte[tag]: %w", err)
 	}
-	err = c.writeVarInt(len(protoBytes))
-	if err != nil {
+	if err = c.writeVarIntLocked(len(protoBytes)); err != nil {
 		return fmt.Errorf("c.writeVarInt: %w", err)
 	}
-	err = c.writeBytes(protoBytes)
-	if err != nil {
-		return fmt.Errorf("c.writeByte[protobytes]: %w", err)
+	if err = c.writeBytesLocked(protoBytes); err != nil {
+		return fmt.Errorf("c.writeBytes[protobytes]: %w", err)
 	}
 	return nil
 }
 
 func (c *MTalkCon) login() error {
 	authSvc := firebase_api.LoginRequest_ANDROID_ID
+	androidID := strconv.FormatInt(c.Device.CheckinAndroidID, 10)
 	request := &firebase_api.LoginRequest{
 		Id:        proto.String("gms-22.48.14-000"),
 		Domain:    proto.String("mcs.android.com"),
-		User:      proto.String(strconv.FormatInt(c.Device.CheckinAndroidID, 10)),
-		Resource:  proto.String(strconv.FormatInt(c.Device.CheckinAndroidID, 10)),
+		User:      proto.String(androidID),
+		Resource:  proto.String(androidID),
 		AuthToken: proto.String(strconv.FormatUint(c.Device.CheckinSecurityToken, 10)),
 		DeviceId:  proto.String(fmt.Sprintf("android-%s", c.Device.Device.Id.ToHexString())),
 		Setting: []*firebase_api.Setting{{
@@ -354,11 +535,15 @@ func (c *MTalkCon) login() error {
 			Name:  proto.String("networkOn"),
 			Value: proto.String("0"),
 		}},
-		ReceivedPersistentId: []string{c.Device.MTalkLastPersistentId},
-		AdaptiveHeartbeat:    proto.Bool(false),
-		UseRmq2:              proto.Bool(true),
-		AuthService:          &authSvc,
-		NetworkType:          proto.Int32(1),
+		AdaptiveHeartbeat: proto.Bool(false),
+		UseRmq2:           proto.Bool(true),
+		AuthService:       &authSvc,
+		NetworkType:       proto.Int32(1),
+	}
+	// Only acknowledge a persistent id when we actually have one, an empty entry makes
+	// the server replay every pending message.
+	if c.Device.MTalkLastPersistentId != "" {
+		request.ReceivedPersistentId = []string{c.Device.MTalkLastPersistentId}
 	}
 	return c.writeMessage(firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG, request)
 }
@@ -376,80 +561,97 @@ func (c *MTalkCon) readVarInt() (int, error) {
 			break
 		}
 		shift += 7
+		if shift > 35 {
+			return 0, errors.New("varint is too long")
+		}
+	}
+	if result < 0 {
+		return 0, fmt.Errorf("negative varint: %d", result)
 	}
 	return int(result), nil
 }
 
-func (c *MTalkCon) writeVarInt(value int) error {
+func (c *MTalkCon) writeVarIntLocked(value int) error {
 	for {
 		if (value & ^0x7F) == 0 {
-			err := c.writeByte(byte(value))
-			if err != nil {
+			if err := c.writeByteLocked(byte(value)); err != nil {
 				return fmt.Errorf("c.writeByte[0]: %w", err)
 			}
-			break
-		} else {
-			err := c.writeByte(byte((value & 0x7F) | 0x80))
-			if err != nil {
-				return fmt.Errorf("c.writeByte: %w", err)
-			}
-			u := uint32(value)
-			value = int(u >> 7)
+			return nil
 		}
+		if err := c.writeByteLocked(byte((value & 0x7F) | 0x80)); err != nil {
+			return fmt.Errorf("c.writeByte: %w", err)
+		}
+		value = int(uint32(value) >> 7)
 	}
-	return nil
 }
 
-func (c *MTalkCon) readBytes(len int) ([]byte, error) {
-	buf := make([]byte, len)
-	_, err := io.ReadFull(c.RawConn, buf)
-	if err != nil && !errors.Is(err, io.EOF) {
-		err = fmt.Errorf("io.ReadFull: %w", err)
-	} else {
-		err = nil
+// maxMessageSize guards against a corrupt length prefix asking us to allocate gigabytes.
+const maxMessageSize = 32 << 20 // 32 MiB
+
+func (c *MTalkCon) readBytes(length int) ([]byte, error) {
+	if c.reader == nil {
+		return nil, firebase_api.ErrNotConnected
 	}
-	// fmt.Println(fmt.Sprintf("%s\tIO:BYTESIN:%s", time.Now().Format(time.RFC3339), hex.EncodeToString(result)))
-	return buf, err
+	if length < 0 || length > maxMessageSize {
+		return nil, fmt.Errorf("refusing to read %d bytes, message length is out of range", length)
+	}
+	if length == 0 {
+		return nil, nil
+	}
+
+	buf := make([]byte, length)
+	// NOTE: this used to swallow io.EOF and hand back a zeroed buffer, which turned a
+	// dropped connection into an endless stream of bogus "messages".
+	if _, err := io.ReadFull(c.reader, buf); err != nil {
+		if errors.Is(err, io.ErrUnexpectedEOF) {
+			return nil, fmt.Errorf("io.ReadFull: %w", io.EOF)
+		}
+		return nil, fmt.Errorf("io.ReadFull: %w", err)
+	}
+	return buf, nil
 }
 
 func (c *MTalkCon) readByte() (byte, error) {
-	buf, err := c.readBytes(1)
+	if c.reader == nil {
+		return 0, firebase_api.ErrNotConnected
+	}
+	b, err := c.reader.ReadByte()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("reader.ReadByte: %w", err)
 	}
-	if len(buf) != 1 {
-		return 0, errors.New("no data read")
-	}
-	return buf[0], nil
+	return b, nil
 }
 
-func (c *MTalkCon) writeBytes(data []byte) error {
-	// fmt.Println(fmt.Sprintf("%s\tIO:BYTESOUT:%s", time.Now().Format(time.RFC3339), hex.EncodeToString(data)))
-	_, err := c.RawConn.Write(data)
-	if err != nil {
-		// return fmt.Errorf("c.IO.WriteMessage: %w", err)
+func (c *MTalkCon) writeBytesLocked(data []byte) error {
+	if c.RawConn == nil {
+		return firebase_api.ErrNotConnected
+	}
+	if _, err := c.RawConn.Write(data); err != nil {
 		return fmt.Errorf("c.RawConn.Write: %w", err)
 	}
 	return nil
 }
 
+func (c *MTalkCon) writeByteLocked(data byte) error {
+	return c.writeBytesLocked([]byte{data})
+}
+
+// writeByte writes a single byte, taking the write lock itself.
 func (c *MTalkCon) writeByte(data byte) error {
-	return c.writeBytes([]byte{data})
+	c.writeMux.Lock()
+	defer c.writeMux.Unlock()
+	return c.writeByteLocked(data)
 }
 
 func parseAppDataValue(value string) map[string]string {
 	result := make(map[string]string)
-	pairs := strings.Split(value, ";")
-	for _, pair := range pairs {
+	for _, pair := range strings.Split(value, ";") {
 		if pair == "" {
 			continue
 		}
-
-		kv := strings.SplitN(pair, "=", 2)
-		if len(kv) == 2 {
-			key := kv[0]
-			val := kv[1]
-			result[key] = val
+		if key, val, found := strings.Cut(pair, "="); found {
+			result[strings.TrimSpace(key)] = val
 		}
 	}
 	return result

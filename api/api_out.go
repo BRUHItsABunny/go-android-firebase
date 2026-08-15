@@ -17,21 +17,27 @@ import (
 )
 
 func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData) (*http.Request, error) {
-	fid, _ := RandomAppFID()
-	gmpAppID := appData.GMPAppID
-	authVersion := appData.AuthVersion
-	sdkVersion := appData.SdkVersion
+	if err := device.Validate(); err != nil {
+		return nil, err
+	}
+	appData.ApplyDefaults()
+	if err := appData.ValidateForInstallation(); err != nil {
+		return nil, err
+	}
 
-	installationData, ok := device.FirebaseInstallations[appData.PackageID]
-	if ok {
+	fid, err := RandomAppFID()
+	if err != nil {
+		return nil, fmt.Errorf("RandomAppFID: %w", err)
+	}
+	if installationData, ok := device.Installation(appData.PackageID); ok && installationData.FirebaseInstallationID != "" {
 		fid = installationData.FirebaseInstallationID
 	}
 
 	data := NotifyInstallationRequestBody{
 		FID:         fid,
-		AppID:       gmpAppID,
-		AuthVersion: authVersion,
-		SDKVersion:  sdkVersion,
+		AppID:       appData.GMPAppID,
+		AuthVersion: appData.AuthVersion,
+		SDKVersion:  appData.SdkVersion,
 	}
 
 	body, err := json.Marshal(data)
@@ -50,6 +56,16 @@ func NotifyInstallationRequest(ctx context.Context, device *FirebaseDevice, appD
 }
 
 func VerifyPasswordRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, data *VerifyPasswordRequestBody) (*http.Request, error) {
+	if err := device.Validate(); err != nil {
+		return nil, err
+	}
+	if err := appData.ValidateForAPIKeyCall("VerifyPassword"); err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, errors.New("firebase: VerifyPasswordRequestBody is nil")
+	}
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal: %w", err)
@@ -67,6 +83,16 @@ func VerifyPasswordRequest(ctx context.Context, device *FirebaseDevice, appData 
 }
 
 func SignUpNewUser(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, data *SignUpNewUserRequestBody) (*http.Request, error) {
+	if err := device.Validate(); err != nil {
+		return nil, err
+	}
+	if err := appData.ValidateForAPIKeyCall("SignUpNewUser"); err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, errors.New("firebase: SignUpNewUserRequestBody is nil")
+	}
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal: %w", err)
@@ -84,6 +110,16 @@ func SignUpNewUser(ctx context.Context, device *FirebaseDevice, appData *Firebas
 }
 
 func SetAccountInfoRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, data *SetAccountInfoRequestBody) (*http.Request, error) {
+	if err := device.Validate(); err != nil {
+		return nil, err
+	}
+	if err := appData.ValidateForAPIKeyCall("SetAccountInfo"); err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, errors.New("firebase: SetAccountInfoRequestBody is nil")
+	}
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal: %w", err)
@@ -101,6 +137,22 @@ func SetAccountInfoRequest(ctx context.Context, device *FirebaseDevice, appData 
 }
 
 func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, data *RefreshSecureTokenRequestBody) (*http.Request, error) {
+	if err := device.Validate(); err != nil {
+		return nil, err
+	}
+	if err := appData.ValidateForAPIKeyCall("RefreshSecureToken"); err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, errors.New("firebase: RefreshSecureTokenRequestBody is nil")
+	}
+	if data.RefreshToken == "" {
+		return nil, errors.New("firebase: RefreshSecureTokenRequestBody.RefreshToken is empty")
+	}
+	if data.GrantType == "" {
+		data.GrantType = GrantTypeRefreshToken
+	}
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal: %w", err)
@@ -118,14 +170,20 @@ func RefreshSecureTokenRequest(ctx context.Context, device *FirebaseDevice, appD
 }
 
 func AuthRequest(ctx context.Context, device *andutils.Device, appData *FirebaseAppData, data url.Values) (*http.Request, error) {
+	if device == nil {
+		return nil, ErrNilDevice
+	}
+	if appData == nil {
+		return nil, ErrNilAppData
+	}
+	if data == nil {
+		data = url.Values{}
+	}
+
 	data["androidId"] = []string{device.Id.ToHexString()}
 	data["lang"] = []string{device.Locale.ToLocale("-", true)}
 	data["device_country"] = []string{device.Locale.GetCountry(false)}
 	data["sdk_version"] = []string{device.Version.ToAndroidSDK()}
-
-	if appData == nil {
-		return nil, errors.New("appData is nil")
-	}
 
 	if appData.PackageID != "" {
 		data["callerPkg"] = []string{appData.PackageID}
@@ -147,6 +205,10 @@ func AuthRequest(ctx context.Context, device *andutils.Device, appData *Firebase
 }
 
 func CheckinAndroidRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, digest, otaCert string, accountCookies ...string) (*http.Request, error) {
+	if err := device.Validate(); err != nil {
+		return nil, err
+	}
+
 	reqObj := NewCheckinRequest(device.Device)
 	if len(digest) > 0 {
 		reqObj.Digest = &digest
@@ -179,9 +241,20 @@ func CheckinAndroidRequest(ctx context.Context, device *FirebaseDevice, appData 
 }
 
 func C2DMAndroidRegisterRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData) (*http.Request, error) {
-	installationData, ok := device.FirebaseInstallations[appData.PackageID]
+	if err := device.ValidateForCheckinScopedCall(); err != nil {
+		return nil, err
+	}
+	appData.ApplyDefaults()
+	if err := appData.ValidateForRegistration(); err != nil {
+		return nil, err
+	}
+
+	installationData, ok := device.Installation(appData.PackageID)
 	if !ok {
-		return nil, errors.New("no installation available")
+		return nil, fmt.Errorf("%w (package: %s)", ErrNoInstallation, appData.PackageID)
+	}
+	if installationData.InstallationAuthentication == nil || installationData.InstallationAuthentication.AccessToken == "" {
+		return nil, fmt.Errorf("%w (package: %s)", ErrNoInstallationAuth, appData.PackageID)
 	}
 
 	reqBody := url.Values{
@@ -219,6 +292,20 @@ func C2DMAndroidRegisterRequest(ctx context.Context, device *FirebaseDevice, app
 }
 
 func C2DMWebRegisterRequest(ctx context.Context, device *FirebaseDevice, appData *FirebaseAppData, sender, subType, appId string) (*http.Request, error) {
+	if err := device.ValidateForCheckinScopedCall(); err != nil {
+		return nil, err
+	}
+	appData.ApplyDefaults()
+	if err := appData.Validate(); err != nil {
+		return nil, err
+	}
+	if sender == "" {
+		return nil, errors.New("firebase: sender is empty")
+	}
+	if appId == "" {
+		return nil, errors.New("firebase: appId is empty")
+	}
+
 	reqBody := url.Values{
 		"sender":           {sender},
 		"X-subscription":   {sender},

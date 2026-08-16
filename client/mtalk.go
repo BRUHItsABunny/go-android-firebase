@@ -11,7 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -41,7 +43,18 @@ type MTalkCon struct {
 	// can be retrieved with Err(), previous versions of this library panicked instead.
 	OnError MTalkErrorProcessor
 	// Debug makes the default notification handler dump every notification to stdout.
+	// Prefer SetLogger, which reports the same thing as structured records.
 	Debug bool
+
+	// logger is nil until SetLogger is used, use Logger() to get a usable one.
+	logger *slog.Logger
+	// logOptions control the logging detail of this connection.
+	logOptions LogOptions
+	// logCtx is the context handed to the logger for records the read loop produces, which
+	// has no request context of its own. Use logContext(), it is never nil.
+	logCtx context.Context
+	// logCtxMux guards logCtx, ConnectContext writes it while the read loop reads it.
+	logCtxMux sync.Mutex
 
 	streamIdReported int
 	streamId         int
@@ -151,23 +164,43 @@ func loadOrCreatePrivateKey(device *firebase_api.FirebaseDevice) (*ecdh.PrivateK
 }
 
 // Connect dials mtalk.google.com, logs in and starts the background read loop.
+// It logs with whatever context SetLogContext was given, if any.
 func (c *MTalkCon) Connect() error {
-	return c.ConnectContext(context.Background())
+	return c.ConnectContext(c.logContext())
 }
 
 // ConnectContext is Connect with a caller controlled deadline for dialling and logging in.
+// The read loop keeps logging with this context's values (never its cancellation) after
+// ConnectContext returned, see SetLogContext.
 func (c *MTalkCon) ConnectContext(ctx context.Context) error {
 	if c.connected.Load() {
 		return firebase_api.ErrAlreadyConnected
 	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	// The read loop outlives this call, so it gets the values without the deadline.
+	c.SetLogContext(ctx)
 	if err := c.Device.ValidateForCheckinScopedCall(); err != nil {
 		return err
 	}
 
+	logger := c.Logger()
 	dialer := &tls.Dialer{NetDialer: &net.Dialer{Timeout: DefaultMTalkDialTimeout}}
 	address := net.JoinHostPort(constants.MTalkHost, constants.MTalkPort)
+
+	start := time.Now()
+	logger.DebugContext(ctx, "mtalk dialling",
+		slog.String("address", address),
+		slog.Int64("android_id", c.Device.CheckinAndroidID),
+		// The login is rejected when these credentials are not (yet) known to mtalk, so
+		// the token that was used is worth having in the log.
+		slog.Uint64("security_token", c.Device.CheckinSecurityToken),
+	)
+
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
+		logger.ErrorContext(ctx, "mtalk dial failed", slog.String("address", address), slog.String("error", err.Error()))
 		return fmt.Errorf("tls.Dial[%s]: %w", address, err)
 	}
 
@@ -185,12 +218,23 @@ func (c *MTalkCon) ConnectContext(ctx context.Context) error {
 		_ = conn.Close()
 		c.reader = nil
 		c.RawConn = nil
+		logger.ErrorContext(ctx, "mtalk login failed",
+			slog.String("error", err.Error()),
+			slog.Duration("took", time.Since(start)),
+		)
 		return err
 	}
 
 	// Clear the handshake deadline, the loop below blocks until a message arrives.
 	_ = conn.SetDeadline(time.Time{})
 	c.connected.Store(true)
+
+	logger.InfoContext(ctx, "mtalk connected",
+		slog.String("address", address),
+		slog.Int64("android_id", c.Device.CheckinAndroidID),
+		slog.Duration("took", time.Since(start)),
+		slog.String("last_persistent_id", c.Device.MTalkLastPersistentId),
+	)
 
 	c.Add(1)
 	go c.loop()
@@ -230,6 +274,54 @@ func (c *MTalkCon) handshake() error {
 			loginRespParsed.Error.GetMessage(), loginRespParsed.Error.GetCode())
 	}
 	return nil
+}
+
+// SetLogger attaches a logger to the connection. NewFirebaseClient does this for you when
+// the client was built WithLogger, set it yourself when you construct an MTalkCon directly.
+func (c *MTalkCon) SetLogger(logger *slog.Logger) {
+	c.logger = logger
+}
+
+// SetLogOptions sets the logging detail for this connection.
+func (c *MTalkCon) SetLogOptions(options LogOptions) {
+	c.logOptions = options
+}
+
+// SetLogContext sets the context the read loop's log records are emitted with, so a
+// handler that reads values off the context (a request id, an account, a trace) decorates
+// the connection's records as well. Cancellation is stripped, the context is only ever
+// used to carry values into the handler.
+//
+// ConnectContext overwrites this with (a non-cancellable copy of) its own context, so call
+// it after connecting, or use plain Connect, which keeps what was set here.
+func (c *MTalkCon) SetLogContext(ctx context.Context) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	c.logCtxMux.Lock()
+	c.logCtx = context.WithoutCancel(ctx)
+	c.logCtxMux.Unlock()
+}
+
+// logContext returns the context for records that have none of their own, never nil.
+func (c *MTalkCon) logContext() context.Context {
+	if c == nil {
+		return context.Background()
+	}
+	c.logCtxMux.Lock()
+	defer c.logCtxMux.Unlock()
+	if c.logCtx == nil {
+		return context.Background()
+	}
+	return c.logCtx
+}
+
+// Logger returns the connection's logger, never nil.
+func (c *MTalkCon) Logger() *slog.Logger {
+	if c == nil || c.logger == nil {
+		return discardLogger
+	}
+	return c.logger
 }
 
 // Connected reports whether the read loop is running.
@@ -297,6 +389,8 @@ func (c *MTalkCon) loop() {
 				// Expected when Close was called or the peer hung up.
 				if !c.stop.Load() {
 					c.reportError(fmt.Errorf("mtalk connection lost: %w", err), true)
+				} else {
+					c.Logger().DebugContext(c.logContext(), "mtalk read loop stopped", slog.Int("stream_id", c.streamId))
 				}
 				return
 			}
@@ -335,6 +429,14 @@ func (c *MTalkCon) reportError(err error, fatal bool) {
 }
 
 func (c *MTalkCon) defaultOnError(err error, fatal bool) {
+	level := slog.LevelWarn
+	if fatal {
+		level = slog.LevelError
+	}
+	c.Logger().Log(c.logContext(), level, "mtalk error",
+		slog.Bool("fatal", fatal),
+		slog.String("error", err.Error()),
+	)
 	if c.Debug {
 		fmt.Printf("mtalk error (fatal=%t): %v\n", fatal, err)
 	}
@@ -426,6 +528,15 @@ func (c *MTalkCon) handleDataMessage(parsedMsg *firebase_api.DataMessageStanza) 
 		parsedMsg.RawData = plaintext
 	}
 
+	c.Logger().DebugContext(c.logContext(), "mtalk notification",
+		slog.String("from", parsedMsg.GetFrom()),
+		slog.String("category", parsedMsg.GetCategory()),
+		slog.String("persistent_id", parsedMsg.GetPersistentId()),
+		slog.String("content_encoding", string(encryptionParams.Version)),
+		slog.Int("bytes", len(parsedMsg.RawData)),
+		slog.Any("app_data_keys", appDataKeys(parsedAppData)),
+	)
+
 	if c.OnNotification != nil {
 		c.OnNotification(parsedMsg)
 	}
@@ -462,6 +573,11 @@ func (c *MTalkCon) readMessage() (proto.Message, error) {
 	}
 
 	c.streamId++
+	c.Logger().DebugContext(c.logContext(), "mtalk frame received",
+		slog.String("tag", firebase_api.MCSTag(int(tag)).String()),
+		slog.Int("bytes", length),
+		slog.Int("stream_id", c.streamId),
+	)
 	return result, nil
 }
 
@@ -647,6 +763,17 @@ func (c *MTalkCon) writeByte(data byte) error {
 	c.writeMux.Lock()
 	defer c.writeMux.Unlock()
 	return c.writeByteLocked(data)
+}
+
+// appDataKeys lists the app data keys of a notification, the values can hold anything so
+// they are left out of the log record.
+func appDataKeys(appData map[string]string) []string {
+	keys := make([]string, 0, len(appData))
+	for key := range appData {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func parseAppDataValue(value string) map[string]string {

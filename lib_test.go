@@ -8,6 +8,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
 	"github.com/BRUHItsABunny/gOkHttp/requests"
 	"github.com/BRUHItsABunny/gOkHttp/responses"
@@ -17,14 +26,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"google.golang.org/protobuf/proto"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"os"
-	"strings"
-	"testing"
-	"time"
 )
 
 type FakeMTalk struct {
@@ -167,10 +168,7 @@ func TestAuthLogin(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client, err := NewFirebaseClient(hClient, device)
-	if err != nil {
-		t.Fatal(err)
-	}
+	client := newTestClient(t, hClient, device)
 
 	resp, err := client.Auth(ctx, appData, values, os.Getenv("AUTH_LOGIN_EMAIL"), os.Getenv("AUTH_LOGIN_OAUTH_TOKEN"))
 	if err == nil {
@@ -213,10 +211,7 @@ func TestAuthOAUTH(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client, err := NewFirebaseClient(hClient, device)
-	if err != nil {
-		t.Fatal(err)
-	}
+	client := newTestClient(t, hClient, device)
 
 	resp, err := client.Auth(ctx, appData, values, os.Getenv("AUTH_OAUTH_EMAIL"), os.Getenv("AUTH_OAUTH_MASTER_TOKEN"))
 	if err == nil {
@@ -244,10 +239,7 @@ func TestNotify(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	client, err := NewFirebaseClient(hClient, device)
-	if err != nil {
-		t.Fatal(err)
-	}
+	client := newTestClient(t, hClient, device)
 
 	resp, err := client.NotifyInstallation(ctx, appData)
 	if err == nil {
@@ -278,10 +270,7 @@ func TestVerifyPassword(t *testing.T) {
 		password = os.Getenv("VERIFY_PASSWORD_PASSWORD")
 	)
 	ctx := context.Background()
-	client, err := NewFirebaseClient(hClient, device)
-	if err != nil {
-		t.Fatal(err)
-	}
+	client := newTestClient(t, hClient, device)
 
 	req := &firebase_api.VerifyPasswordRequestBody{
 		Email:             email,
@@ -326,10 +315,8 @@ func TestRegister3(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient, err := NewFirebaseClient(hClient, fDevice)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// Every step below is logged (installation, check-in, registration), run with -v to see it.
+	fClient := newTestClient(t, hClient, fDevice)
 	authResult, err := fClient.NotifyInstallation(ctx, appData)
 	if err != nil {
 		t.Error(err)
@@ -387,29 +374,15 @@ func TestNativePushNotifications(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient, err := NewFirebaseClient(hClient, fDevice)
+	fClient := newTestClient(t, hClient, fDevice)
+
+	// One call for install + check-in + registration. The retries it does while GCM is
+	// still catching up with the fresh check-in show up as warn records, which is the
+	// easiest way to see the logging earn its keep.
+	result, err := fClient.RegisterForNotifications(ctx, appData, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = fClient.NotifyInstallation(ctx, appData)
-	if err != nil {
-		t.Error(err)
-	}
-
-	time.Sleep(time.Second * 5)
-
-	checkinResult, err := fClient.Checkin(ctx, appData, "", "")
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println(fmt.Sprintf("AndroidID (checkin): %d\nSecurityToken: %d", checkinResult.AndroidId, checkinResult.SecurityToken))
-	time.Sleep(time.Second * 5)
-
-	result, err := fClient.C2DMRegisterAndroid(ctx, appData)
-	if err != nil {
-		t.Error(err)
-	}
-
 	fmt.Println("notificationToken: \n", result)
 
 	time.Sleep(time.Second * 10) // it will error out if we don't wait, there is a latency between checkin credentials being registered with gcm/fcm and being registered with mtalk
@@ -459,10 +432,7 @@ func TestWebPushNotifications(t *testing.T) {
 		t.Error(err)
 	}
 
-	fClient, err := NewFirebaseClient(hClient, fDevice)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fClient := newTestClient(t, hClient, fDevice)
 
 	checkinResult, err := fClient.Checkin(ctx, appData, "", "")
 	if err != nil {

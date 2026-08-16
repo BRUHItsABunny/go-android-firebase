@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -26,6 +28,12 @@ type FireBaseClient struct {
 	deviceMutex sync.Mutex
 	// ownsClient tracks whether Client was created here, we only ever mutate our own.
 	ownsClient bool
+	// logger is nil until WithLogger is used, use Logger() to get a usable one.
+	logger *slog.Logger
+	// logOptions control body logging.
+	logOptions LogOptions
+	// logCtx backs records that have no call context of their own, see WithLogContext.
+	logCtx context.Context
 }
 
 // ClientOption customises a FireBaseClient at construction time.
@@ -76,12 +84,31 @@ func NewFirebaseClient(client *http.Client, device *firebase_api.FirebaseDevice,
 		opt(result)
 	}
 
+	// Wire HTTP level logging in once every option has been seen. The caller's client is
+	// copied rather than modified, we only ever own the transport we installed ourselves.
+	if result.logger != nil {
+		copied := *result.Client
+		copied.Transport = &LoggingTransport{
+			Base:    copied.Transport,
+			Logger:  result.logger,
+			Options: result.logOptions,
+		}
+		result.Client = &copied
+	}
+
 	mTalk, err := NewMTalkCon(device)
 	if err != nil {
 		return nil, fmt.Errorf("NewMTalkCon: %w", err)
 	}
+	mTalk.SetLogger(result.logger)
+	mTalk.SetLogOptions(result.logOptions)
+	mTalk.SetLogContext(result.logContext())
 	result.MTalk = mTalk
 
+	result.Logger().DebugContext(result.logContext(), "firebase client ready",
+		logAttr("device", device),
+		slog.Bool("log_bodies", result.logOptions.Bodies),
+	)
 	return result, nil
 }
 
@@ -116,7 +143,12 @@ func (c *FireBaseClient) installationLocked(packageID string) *firebase_api.Fire
 
 // NotifyInstallation registers the app installation with Firebase and stores the resulting
 // installation ID and auth token on the device.
-func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *firebase_api.FirebaseAppData) (*firebase_api.FireBaseInstallationResponse, error) {
+func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *firebase_api.FirebaseAppData) (result *firebase_api.FireBaseInstallationResponse, err error) {
+	start := time.Now()
+	defer func() {
+		c.logOperation(ctx, "NotifyInstallation", start, err, logAttr("app", appData), logAttr("result", result))
+	}()
+
 	req, err := firebase_api.NotifyInstallationRequest(ctx, c.Device, appData)
 	if err != nil {
 		return nil, fmt.Errorf("api.NotifyInstallationRequest: %w", err)
@@ -127,7 +159,7 @@ func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *fireba
 		return nil, err
 	}
 
-	result, err := firebase_api.NotifyInstallationResult(resp)
+	result, err = firebase_api.NotifyInstallationResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.NotifyInstallationResult: %w", err)
 	}
@@ -149,6 +181,12 @@ func (c *FireBaseClient) NotifyInstallation(ctx context.Context, appData *fireba
 	}
 	// FID in should equal FID out, but that is not always the case, override with FID out to be sure
 	installation.FirebaseInstallationID = result.FID
+
+	c.Logger().InfoContext(ctx, "firebase installation stored",
+		slog.String("package_id", appData.PackageID),
+		slog.String("fid", result.FID),
+		slog.Duration("valid_for", expiresIn),
+	)
 	return result, nil
 }
 
@@ -170,7 +208,10 @@ func (c *FireBaseClient) InstallationExpired(packageID string) bool {
 	return time.Now().Add(time.Minute).After(auth.Expires.AsTime())
 }
 
-func (c *FireBaseClient) VerifyPassword(ctx context.Context, data *firebase_api.VerifyPasswordRequestBody, appData *firebase_api.FirebaseAppData) (*firebase_api.GoogleVerifyPasswordResponse, error) {
+func (c *FireBaseClient) VerifyPassword(ctx context.Context, data *firebase_api.VerifyPasswordRequestBody, appData *firebase_api.FirebaseAppData) (result *firebase_api.GoogleVerifyPasswordResponse, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "VerifyPassword", start, err, logAttr("app", appData)) }()
+
 	req, err := firebase_api.VerifyPasswordRequest(ctx, c.Device, appData, data)
 	if err != nil {
 		return nil, fmt.Errorf("api.VerifyPasswordRequest: %w", err)
@@ -181,14 +222,17 @@ func (c *FireBaseClient) VerifyPassword(ctx context.Context, data *firebase_api.
 		return nil, err
 	}
 
-	result, err := firebase_api.VerifyPasswordResult(resp)
+	result, err = firebase_api.VerifyPasswordResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.VerifyPasswordResult: %w", err)
 	}
 	return result, nil
 }
 
-func (c *FireBaseClient) SetAccountInfo(ctx context.Context, appData *firebase_api.FirebaseAppData, data *firebase_api.SetAccountInfoRequestBody) (*firebase_api.GoogleSetAccountInfoResponse, error) {
+func (c *FireBaseClient) SetAccountInfo(ctx context.Context, appData *firebase_api.FirebaseAppData, data *firebase_api.SetAccountInfoRequestBody) (result *firebase_api.GoogleSetAccountInfoResponse, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "SetAccountInfo", start, err, logAttr("app", appData)) }()
+
 	req, err := firebase_api.SetAccountInfoRequest(ctx, c.Device, appData, data)
 	if err != nil {
 		return nil, fmt.Errorf("api.SetAccountInfoRequest: %w", err)
@@ -199,14 +243,17 @@ func (c *FireBaseClient) SetAccountInfo(ctx context.Context, appData *firebase_a
 		return nil, err
 	}
 
-	result, err := firebase_api.SetAccountInfoResult(resp)
+	result, err = firebase_api.SetAccountInfoResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.SetAccountInfoResult: %w", err)
 	}
 	return result, nil
 }
 
-func (c *FireBaseClient) SignUpNewUser(ctx context.Context, appData *firebase_api.FirebaseAppData, data *firebase_api.SignUpNewUserRequestBody) (*firebase_api.GoogleSignUpNewUserResponse, error) {
+func (c *FireBaseClient) SignUpNewUser(ctx context.Context, appData *firebase_api.FirebaseAppData, data *firebase_api.SignUpNewUserRequestBody) (result *firebase_api.GoogleSignUpNewUserResponse, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "SignUpNewUser", start, err, logAttr("app", appData)) }()
+
 	req, err := firebase_api.SignUpNewUser(ctx, c.Device, appData, data)
 	if err != nil {
 		return nil, fmt.Errorf("api.SignUpNewUser: %w", err)
@@ -217,14 +264,17 @@ func (c *FireBaseClient) SignUpNewUser(ctx context.Context, appData *firebase_ap
 		return nil, err
 	}
 
-	result, err := firebase_api.SignUpNewUserResult(resp)
+	result, err = firebase_api.SignUpNewUserResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.SignUpNewUserResult: %w", err)
 	}
 	return result, nil
 }
 
-func (c *FireBaseClient) RefreshSecureToken(ctx context.Context, appData *firebase_api.FirebaseAppData, data *firebase_api.RefreshSecureTokenRequestBody) (*firebase_api.SecureTokenRefreshResponse, error) {
+func (c *FireBaseClient) RefreshSecureToken(ctx context.Context, appData *firebase_api.FirebaseAppData, data *firebase_api.RefreshSecureTokenRequestBody) (result *firebase_api.SecureTokenRefreshResponse, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "RefreshSecureToken", start, err, logAttr("app", appData)) }()
+
 	req, err := firebase_api.RefreshSecureTokenRequest(ctx, c.Device, appData, data)
 	if err != nil {
 		return nil, fmt.Errorf("api.RefreshSecureTokenRequest: %w", err)
@@ -235,15 +285,24 @@ func (c *FireBaseClient) RefreshSecureToken(ctx context.Context, appData *fireba
 		return nil, err
 	}
 
-	result, err := firebase_api.RefreshSecureTokenResult(resp)
+	result, err = firebase_api.RefreshSecureTokenResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.RefreshSecureTokenResult: %w", err)
 	}
 	return result, nil
 }
 
-func (c *FireBaseClient) Auth(ctx context.Context, appData *firebase_api.FirebaseAppData, data url.Values, email, token string) (*firebase_api.AuthResponse, error) {
-	if err := c.Device.Validate(); err != nil {
+func (c *FireBaseClient) Auth(ctx context.Context, appData *firebase_api.FirebaseAppData, data url.Values, email, token string) (result *firebase_api.AuthResponse, err error) {
+	start := time.Now()
+	defer func() {
+		c.logOperation(ctx, "Auth", start, err,
+			logAttr("app", appData),
+			slog.String("service", data.Get("service")),
+			logAttr("result", result),
+		)
+	}()
+
+	if err = c.Device.Validate(); err != nil {
 		return nil, err
 	}
 	if data == nil {
@@ -266,7 +325,7 @@ func (c *FireBaseClient) Auth(ctx context.Context, appData *firebase_api.Firebas
 		return nil, err
 	}
 
-	result, err := firebase_api.AuthResult(resp)
+	result, err = firebase_api.AuthResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.AuthResult: %w", err)
 	}
@@ -274,7 +333,10 @@ func (c *FireBaseClient) Auth(ctx context.Context, appData *firebase_api.Firebas
 }
 
 // Checkin performs an Android check-in and stores the resulting credentials on the device.
-func (c *FireBaseClient) Checkin(ctx context.Context, appData *firebase_api.FirebaseAppData, digest, otaCert string, accountCookies ...string) (*firebase_api.CheckinResponse, error) {
+func (c *FireBaseClient) Checkin(ctx context.Context, appData *firebase_api.FirebaseAppData, digest, otaCert string, accountCookies ...string) (result *firebase_api.CheckinResponse, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "Checkin", start, err) }()
+
 	req, err := firebase_api.CheckinAndroidRequest(ctx, c.Device, appData, digest, otaCert, accountCookies...)
 	if err != nil {
 		return nil, fmt.Errorf("api.CheckinAndroidRequest: %w", err)
@@ -286,7 +348,7 @@ func (c *FireBaseClient) Checkin(ctx context.Context, appData *firebase_api.Fire
 	}
 
 	// CheckinResult guarantees a non-nil android id and security token.
-	result, err := firebase_api.CheckinResult(resp)
+	result, err = firebase_api.CheckinResult(resp)
 	if err != nil {
 		return nil, fmt.Errorf("api.CheckinResult: %w", err)
 	}
@@ -295,11 +357,19 @@ func (c *FireBaseClient) Checkin(ctx context.Context, appData *firebase_api.Fire
 	c.Device.CheckinAndroidID = int64(*result.AndroidId)
 	c.Device.CheckinSecurityToken = *result.SecurityToken
 	c.deviceMutex.Unlock()
+
+	c.Logger().InfoContext(ctx, "device checked in",
+		slog.Int64("android_id", int64(*result.AndroidId)),
+		slog.String("security_token", strconv.FormatUint(*result.SecurityToken, 10)),
+	)
 	return result, nil
 }
 
 // C2DMRegisterAndroid obtains an FCM notification token for the app and stores it on the device.
-func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context, appData *firebase_api.FirebaseAppData) (string, error) {
+func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context, appData *firebase_api.FirebaseAppData) (result string, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "C2DMRegisterAndroid", start, err, logAttr("app", appData)) }()
+
 	req, err := firebase_api.C2DMAndroidRegisterRequest(ctx, c.Device, appData)
 	if err != nil {
 		return "", fmt.Errorf("api.C2DMAndroidRegisterRequest: %w", err)
@@ -310,7 +380,7 @@ func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context, appData *fireb
 		return "", err
 	}
 
-	result, err := firebase_api.AndroidRegisterResult(resp)
+	result, err = firebase_api.AndroidRegisterResult(resp)
 	if err != nil {
 		return "", fmt.Errorf("api.AndroidRegisterResult: %w", err)
 	}
@@ -318,11 +388,21 @@ func (c *FireBaseClient) C2DMRegisterAndroid(ctx context.Context, appData *fireb
 	c.deviceMutex.Lock()
 	c.installationLocked(appData.PackageID).NotificationData.NotificationToken = result
 	c.deviceMutex.Unlock()
+
+	c.Logger().InfoContext(ctx, "notification token obtained",
+		slog.String("package_id", appData.PackageID),
+		slog.String("token", result),
+	)
 	return result, nil
 }
 
 // C2DMRegisterWeb obtains a web push subscription token and stores it under the package ID.
-func (c *FireBaseClient) C2DMRegisterWeb(ctx context.Context, appData *firebase_api.FirebaseAppData, sender, subtype, appid string) (string, error) {
+func (c *FireBaseClient) C2DMRegisterWeb(ctx context.Context, appData *firebase_api.FirebaseAppData, sender, subtype, appid string) (result string, err error) {
+	start := time.Now()
+	defer func() {
+		c.logOperation(ctx, "C2DMRegisterWeb", start, err, logAttr("app", appData), slog.String("subtype", subtype))
+	}()
+
 	req, err := firebase_api.C2DMWebRegisterRequest(ctx, c.Device, appData, sender, subtype, appid)
 	if err != nil {
 		return "", fmt.Errorf("api.C2DMWebRegisterRequest: %w", err)
@@ -333,7 +413,7 @@ func (c *FireBaseClient) C2DMRegisterWeb(ctx context.Context, appData *firebase_
 		return "", err
 	}
 
-	result, err := firebase_api.AndroidRegisterResult(resp)
+	result, err = firebase_api.AndroidRegisterResult(resp)
 	if err != nil {
 		return "", fmt.Errorf("api.AndroidRegisterResult: %w", err)
 	}
@@ -366,21 +446,28 @@ func DefaultRegisterOptions() *RegisterOptions {
 //
 // This replaces having to call NotifyInstallation, Checkin and C2DMRegisterAndroid by hand
 // in the right order with the right sleeps in between.
-func (c *FireBaseClient) RegisterForNotifications(ctx context.Context, appData *firebase_api.FirebaseAppData, opts *RegisterOptions) (string, error) {
+func (c *FireBaseClient) RegisterForNotifications(ctx context.Context, appData *firebase_api.FirebaseAppData, opts *RegisterOptions) (token string, err error) {
+	start := time.Now()
+	defer func() { c.logOperation(ctx, "RegisterForNotifications", start, err, logAttr("app", appData)) }()
+
 	if opts == nil {
 		opts = DefaultRegisterOptions()
 	}
-	if err := appData.Validate(); err != nil {
+	if err = appData.Validate(); err != nil {
 		return "", err
 	}
 
+	logger := c.Logger()
+
 	if c.InstallationExpired(appData.PackageID) {
+		logger.DebugContext(ctx, "installation missing or expired, installing", slog.String("package_id", appData.PackageID))
 		if _, err := c.NotifyInstallation(ctx, appData); err != nil {
 			return "", fmt.Errorf("c.NotifyInstallation: %w", err)
 		}
 	}
 
 	if opts.ForceCheckin || !c.Device.HasCheckin() {
+		logger.DebugContext(ctx, "checking device in", slog.Bool("forced", opts.ForceCheckin))
 		if _, err := c.Checkin(ctx, appData, "", ""); err != nil {
 			return "", fmt.Errorf("c.Checkin: %w", err)
 		}
@@ -394,6 +481,12 @@ func (c *FireBaseClient) RegisterForNotifications(ctx context.Context, appData *
 	var lastErr error
 	for attempt := 0; attempt <= opts.Retries; attempt++ {
 		if attempt > 0 {
+			logger.WarnContext(ctx, "registration failed, retrying",
+				slog.Int("attempt", attempt),
+				slog.Int("of", opts.Retries+1),
+				slog.Duration("waiting", delay),
+				slog.String("error", lastErr.Error()),
+			)
 			select {
 			case <-ctx.Done():
 				return "", fmt.Errorf("registration aborted after %d attempt(s): %w (last error: %v)", attempt, ctx.Err(), lastErr)
@@ -415,6 +508,8 @@ func (c *FireBaseClient) RegisterForNotifications(ctx context.Context, appData *
 		// thing that can turn this attempt into a successful one.
 		registerErr := new(firebase_api.RegisterError)
 		if errors.As(err, &registerErr) && registerErr.Code == firebase_api.RegisterErrorAuthentication {
+			logger.WarnContext(ctx, "check-in credentials rejected, checking in again",
+				logAttr("register_error", registerErr))
 			if _, checkinErr := c.Checkin(ctx, appData, "", ""); checkinErr != nil {
 				return "", fmt.Errorf("c.Checkin (after %w): %w", err, checkinErr)
 			}

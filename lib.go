@@ -31,6 +31,10 @@ type (
 	AppData = firebase_api.FirebaseAppData
 	// RegisterOptions tunes Client.RegisterForNotifications.
 	RegisterOptions = firebase_client.RegisterOptions
+	// LogOptions controls how much detail the client logs.
+	LogOptions = firebase_client.LogOptions
+	// LoggingTransport logs HTTP round trips, reusable on a custom *http.Client.
+	LoggingTransport = firebase_client.LoggingTransport
 	// Notification is a push notification as it arrives over MTalk.
 	Notification = firebase_api.DataMessageStanza
 )
@@ -52,6 +56,22 @@ var (
 func NewFirebaseClient(hClient *http.Client, device *firebase_api.FirebaseDevice, opts ...firebase_client.ClientOption) (*firebase_client.FireBaseClient, error) {
 	return firebase_client.NewFirebaseClient(hClient, device, opts...)
 }
+
+// Logging options, re-exported so callers only need this package.
+//
+// The library logs through log/slog, so any slog handler receives its internals: no
+// dependency on a specific logging library, and nothing is logged until a logger is set.
+var (
+	// WithLogger attaches a *slog.Logger, see the client package for the levels used.
+	WithLogger = firebase_client.WithLogger
+	// WithLogBodies includes HTTP request/response bodies in the debug records.
+	WithLogBodies = firebase_client.WithLogBodies
+	// WithLogOptions sets every logging detail at once.
+	WithLogOptions = firebase_client.WithLogOptions
+	// WithLogContext sets the context for records with no call of their own (startup, the
+	// MTalk read loop), for handlers that take attributes off the context.
+	WithLogContext = firebase_client.WithLogContext
+)
 
 // RandomAppFID generates a Firebase Installation ID, returning an empty string in the
 // (practically impossible) case that no randomness is available. Use RandomAppFIDErr when

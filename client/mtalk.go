@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -379,7 +380,7 @@ func (c *MTalkCon) loop() {
 		}
 		c.connected.Store(false)
 		close(c.closed)
-		c.WaitGroup.Done()
+		c.Done()
 	}()
 
 	for {
@@ -669,42 +670,38 @@ func (c *MTalkCon) login() error {
 	return c.writeMessage(firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG, request)
 }
 
+// readVarInt reads an unsigned LEB128 varint from the buffered stream and validates
+// the result against maxMessageSize.
 func (c *MTalkCon) readVarInt() (int, error) {
-	shift := uint(0)
-	result := int64(0)
-	for {
-		b, err := c.readByte()
-		if err != nil {
-			return 0, fmt.Errorf("c.readByte: %w", err)
-		}
-		result |= int64(b&0x7f) << shift
-		if (b & 0x80) != 0x80 {
-			break
-		}
-		shift += 7
-		if shift > 35 {
-			return 0, errors.New("varint is too long")
-		}
+	if c.reader == nil {
+		return 0, firebase_api.ErrNotConnected
 	}
-	if result < 0 {
-		return 0, fmt.Errorf("negative varint: %d", result)
+
+	val, err := binary.ReadUvarint(c.reader)
+	if err != nil {
+		return 0, err
 	}
-	return int(result), nil
+
+	if val > maxMessageSize {
+		return 0, fmt.Errorf("refusing to read %d bytes, message length is out of range", val)
+	}
+
+	return int(val), nil
 }
 
+// writeVarIntLocked writes an unsigned LEB128 varint to the wire in a single atomic write.
+// The caller must hold writeMux.
 func (c *MTalkCon) writeVarIntLocked(value int) error {
-	for {
-		if (value & ^0x7F) == 0 {
-			if err := c.writeByteLocked(byte(value)); err != nil {
-				return fmt.Errorf("c.writeByte[0]: %w", err)
-			}
-			return nil
-		}
-		if err := c.writeByteLocked(byte((value & 0x7F) | 0x80)); err != nil {
-			return fmt.Errorf("c.writeByte: %w", err)
-		}
-		value = int(uint32(value) >> 7)
+	if value < 0 {
+		return fmt.Errorf("cannot write negative varint: %d", value)
 	}
+
+	var buf [binary.MaxVarintLen64]byte
+	n := binary.PutUvarint(buf[:], uint64(value))
+	if err := c.writeBytesLocked(buf[:n]); err != nil {
+		return fmt.Errorf("c.writeBytesLocked[varint]: %w", err)
+	}
+	return nil
 }
 
 // maxMessageSize guards against a corrupt length prefix asking us to allocate gigabytes.

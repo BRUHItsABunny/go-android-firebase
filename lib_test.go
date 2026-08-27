@@ -18,9 +18,9 @@ import (
 	"time"
 
 	gokhttp "github.com/BRUHItsABunny/gOkHttp"
-	"github.com/BRUHItsABunny/gOkHttp/requests"
-	"github.com/BRUHItsABunny/gOkHttp/responses"
-	"github.com/BRUHItsABunny/go-android-firebase/api"
+	gokhttp_requests "github.com/BRUHItsABunny/gOkHttp/requests"
+	gokhttp_responses "github.com/BRUHItsABunny/gOkHttp/responses"
+	firebase_api "github.com/BRUHItsABunny/go-android-firebase/api"
 	andutils "github.com/BRUHItsABunny/go-android-utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
@@ -32,18 +32,15 @@ type FakeMTalk struct {
 	buff *bytes.Buffer
 }
 
-func (c *FakeMTalk) readBytes(len int) ([]byte, error) {
-	buf := make([]byte, len)
-	var result []byte
+func (c *FakeMTalk) readBytes(length int) ([]byte, error) {
+	buf := make([]byte, length)
 	read, err := c.buff.Read(buf)
 	if err != nil && !errors.Is(err, io.EOF) {
-		err = fmt.Errorf(" c.buff.Read: %w", err)
+		err = fmt.Errorf("c.buff.Read: %w", err)
 	} else {
 		err = nil
 	}
-	result = buf[:read]
-	// fmt.Println(fmt.Sprintf("%s\tIO:BYTESIN:%s", time.Now().Format(time.RFC3339), hex.EncodeToString(result)))
-	return result, err
+	return buf[:read], err
 }
 
 func (c *FakeMTalk) readByte() (byte, error) {
@@ -109,25 +106,18 @@ func TestDecodeItem(t *testing.T) {
 	switch firebase_api.MCSTag(int(tag)) {
 	case firebase_api.MCSTag_MCS_HEARTBEAT_PING_TAG:
 		result = &firebase_api.HeartbeatPing{}
-		break
 	case firebase_api.MCSTag_MCS_HEARTBEAT_ACK_TAG:
 		result = &firebase_api.HeartbeatAck{}
-		break
 	case firebase_api.MCSTag_MCS_LOGIN_REQUEST_TAG:
 		result = &firebase_api.LoginRequest{}
-		break
 	case firebase_api.MCSTag_MCS_LOGIN_RESPONSE_TAG:
 		result = &firebase_api.LoginResponse{}
-		break
 	case firebase_api.MCSTag_MCS_CLOSE_TAG:
 		result = &firebase_api.Close{}
-		break
 	case firebase_api.MCSTag_MCS_IQ_STANZA_TAG:
 		result = &firebase_api.IqStanza{}
-		break
 	case firebase_api.MCSTag_MCS_DATA_MESSAGE_STANZA_TAG:
 		result = &firebase_api.DataMessageStanza{}
-		break
 	default:
 		t.Fatal(fmt.Errorf("unknown tag: %d", tag))
 	}
@@ -137,11 +127,10 @@ func TestDecodeItem(t *testing.T) {
 	}
 
 	fmt.Println(spew.Sdump(result))
-	// This succeeds so I know something is wrong in the registration/sending push notification part
 }
 
 func TestAuthLogin(t *testing.T) {
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
@@ -179,7 +168,7 @@ func TestAuthLogin(t *testing.T) {
 }
 
 func TestAuthOAUTH(t *testing.T) {
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
@@ -222,7 +211,7 @@ func TestAuthOAUTH(t *testing.T) {
 }
 
 func TestNotify(t *testing.T) {
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
@@ -250,7 +239,7 @@ func TestNotify(t *testing.T) {
 }
 
 func TestVerifyPassword(t *testing.T) {
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
@@ -309,13 +298,12 @@ func TestRegister3(t *testing.T) {
 		FirebaseClientVersion: "fcm-22.0.0",
 	}
 
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
 	}
 
-	// Every step below is logged (installation, check-in, registration), run with -v to see it.
 	fClient := newTestClient(t, hClient, fDevice)
 	authResult, err := fClient.NotifyInstallation(ctx, appData)
 	if err != nil {
@@ -327,7 +315,7 @@ func TestRegister3(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(fmt.Sprintf("AndroidID (checkin): %d\nSecurityToken: %d", checkinResult.AndroidId, checkinResult.SecurityToken))
+	fmt.Printf("AndroidID (checkin): %d\nSecurityToken: %d\n", checkinResult.AndroidId, checkinResult.SecurityToken)
 
 	result, err := fClient.C2DMRegisterAndroid(ctx, appData)
 	if err != nil {
@@ -336,7 +324,6 @@ func TestRegister3(t *testing.T) {
 
 	fmt.Println("notificationToken: \n", result)
 
-	// Check if fDevice was updated with the new information returned by the api calls
 	prettyBytes, err := json.MarshalIndent(fDevice, "", "    ")
 	if err != nil {
 		t.Error(err)
@@ -368,7 +355,7 @@ func TestNativePushNotifications(t *testing.T) {
 		FirebaseClientVersion: "fcm-23.1.2",
 	}
 
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
@@ -376,16 +363,13 @@ func TestNativePushNotifications(t *testing.T) {
 
 	fClient := newTestClient(t, hClient, fDevice)
 
-	// One call for install + check-in + registration. The retries it does while GCM is
-	// still catching up with the fresh check-in show up as warn records, which is the
-	// easiest way to see the logging earn its keep.
 	result, err := fClient.RegisterForNotifications(ctx, appData, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println("notificationToken: \n", result)
 
-	time.Sleep(time.Second * 10) // it will error out if we don't wait, there is a latency between checkin credentials being registered with gcm/fcm and being registered with mtalk
+	time.Sleep(time.Second * 10)
 
 	err = fClient.MTalk.Connect()
 	if err != nil {
@@ -404,7 +388,7 @@ func TestNativePushNotifications(t *testing.T) {
 	}
 	fmt.Println("Waiting for message")
 	msg := <-resultChan
-	latency := time.Now().Sub(pre)
+	latency := time.Since(pre)
 	fmt.Println(spew.Sdump(msg))
 	fmt.Println("Latency: ", latency)
 }
@@ -426,7 +410,7 @@ func TestWebPushNotifications(t *testing.T) {
 		FirebaseClientVersion: "fcm-22.0.0",
 	}
 
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	hClient, err := gokhttp.TestHTTPClient()
 	if err != nil {
 		t.Error(err)
@@ -438,13 +422,13 @@ func TestWebPushNotifications(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(fmt.Sprintf("AndroidID (checkin): %d\nSecurityToken: %d", checkinResult.AndroidId, checkinResult.SecurityToken))
+	fmt.Printf("AndroidID (checkin): %d\nSecurityToken: %d\n", checkinResult.AndroidId, checkinResult.SecurityToken)
 	time.Sleep(time.Second * 5)
 
 	sender := getNotificationDataWeb()
 	uuidStr := strings.ToUpper(uuid.New().String())
 	subType := "https://push.foo/#" + uuidStr[:len(uuidStr)-3]
-	appid := "f1pdRYedASE" // TODO: IDK where this one comes from
+	appid := "f1pdRYedASE"
 
 	result, err := fClient.C2DMRegisterWeb(ctx, appData, sender, subType, appid)
 	if err != nil {
@@ -453,7 +437,7 @@ func TestWebPushNotifications(t *testing.T) {
 
 	fmt.Println("notificationToken: \n", result)
 
-	time.Sleep(time.Second * 10) // it will error out if we don't wait, there is a latency between checkin credentials being registered with gcm/fcm and being registered with mtalk
+	time.Sleep(time.Second * 10)
 
 	err = fClient.MTalk.Connect()
 	if err != nil {
@@ -472,7 +456,7 @@ func TestWebPushNotifications(t *testing.T) {
 	}
 	fmt.Println("Waiting for message")
 	msg := <-resultChan
-	latency := time.Now().Sub(pre)
+	latency := time.Since(pre)
 	fmt.Println(spew.Sdump(msg))
 	fmt.Println("Latency: ", latency)
 }

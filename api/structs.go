@@ -304,7 +304,6 @@ func (sai *SetAccountInfoRequestBody) UnmarshalJSON(data []byte) error {
 			switch value := returnSecureToken.(type) {
 			case bool:
 				sai.ReturnSecureToken = value
-				break
 			}
 		}
 
@@ -313,7 +312,6 @@ func (sai *SetAccountInfoRequestBody) UnmarshalJSON(data []byte) error {
 			switch value := idToken.(type) {
 			case string:
 				sai.AuthToken = value
-				break
 			}
 		}
 		delete(targetMap, "idToken")
